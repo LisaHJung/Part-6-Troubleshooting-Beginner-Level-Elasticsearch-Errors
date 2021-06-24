@@ -1,0 +1,1 @@
+# Part-6-Troubleshooting-beginner-level-Elasticsearch-Errors
