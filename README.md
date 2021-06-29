@@ -253,6 +253,8 @@ Expected response from Elasticsearch:
 You will see that the fields solution and http_error have been successfully added to document 1. 
 
 ### Errors associated with sending search queries
+
+**Error 1: 400 Unknown Key**
 Suppose we added a new dataset. We want to retrieve all documents in our index and also see the total number of hits. 
 
 We send the following request:
@@ -284,6 +286,53 @@ Expected response from Elasticsearch:
 ![image](https://user-images.githubusercontent.com/60980933/123839774-c0870680-d8ca-11eb-9224-d9a939f902a8.png)
 
 Elasticsearch returns the total number of hits(line 12) and displays top 10 hits. 
+
+**Error 1: 400 [X] query does not support [y]**
+
+Suppose you want to use the range query to pull up all documents where the date field contains a term between the two date ranges provided:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "range": {
+      "date": 
+        "gte": "2015-06-20",
+        "lte": "2015-09-22"
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/123853448-b4a34080-d8da-11eb-9f29-ad56a205342c.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[range] query does not support [date]." 
+
+Let's check the documentation on the [Range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
+
+The culprit is the range query syntax! 
+
+Our request is missing an extra curly braces to wrap the ranges like the request shown below. Let's send the following request and see what happens:
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "range": {
+      "date": {
+        "gte": "2015-06-20",
+        "lte": "2015-09-22"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/123855939-bc181900-d8dd-11eb-9aed-0cbe6d80ced5.png)
+Elasticsearch retrieves documents whose ranges fall in the range provided in the request. 
 
 ### Errors associated with full text search
 ### Errors associated with aggregations
