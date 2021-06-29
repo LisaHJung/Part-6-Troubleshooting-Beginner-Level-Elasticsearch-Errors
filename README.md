@@ -44,28 +44,38 @@ HTTP errors that start with 4 stems from client errors. When you see this, corre
 2. What does the response say?
 
 ## Trip down memory lane
-![image](https://user-images.githubusercontent.com/60980933/121580744-55909100-c9ea-11eb-98fe-8c8491b0a7a1.png)
+Throughout the Beginner's Crash Course to Elastic Stack Series, we have covered these topics:
+1. Nodes and Shards
+2. CRUD operations
+3. Full text search
+4. Aggregations
+5. Mapping
+
+We will revisit each topic and go over common errors you may encounter as you explore these topics further. 
 
 ### Errors associated with CRUD operations
 **Error 1: 404 Not Found**
-In part 1: Intro to Elasticsearch and Kibana, we learned how to perform CRUD operations. In the request below, we instruct Elasticsearch to retrieve document with an id of 1 from the index common_errors.
+In part 1: Intro to Elasticsearch and Kibana, we learned how to perform CRUD operations. Let's say we send the following request to retrieve a document with an id of 1 from the index common_errors.
 
-Incorrect Example:
+Request sent: 
 ```
 GET common_errors/_doc/1
 ```
+
+Expected response from Elasticsearch:
 ![image](https://user-images.githubusercontent.com/60980933/123666137-2d7c9c80-d7f6-11eb-94de-6719dc562f3f.png)
 
-Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP error 404 starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
 If you look at the response, Elasticsearch lists the reason as "no such index [common_errors]." Two possible explanations are:
 1. The index common_errors truly does not exist or was deleted
 2. We do not have the correct index name
 
 **Cause of Error 1** 
-In our example, we have not created an index called common_errors yet so we were trying to retrieve a document from an index that does not exist. 
+In our example, the cause of the error is quite clear! We have not created an index called common_errors and we were trying to retrieve a document from an index that does not exist. 
 
 Let's create one! 
+
 Create an index called common_errors:
 
 Syntax:
@@ -94,21 +104,25 @@ PUT common_errors/_doc
 Expected response from Elasticsearch:
 ![image](https://user-images.githubusercontent.com/60980933/123680880-69b7f900-d806-11eb-91af-a05ad9298a4a.png)
 
-Elasticsearch returns a 405-error along with cause of the error in the response body. The HTTP error 405 starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
 If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... allowed:[POST]." 
 
-**Cause of Error2 : Mixing up the request syntax for POST and PUT operation**
+**Cause of Error 2 : Mixing up the request syntax for POST and PUT operations**
 
-This error message suggests that we used the wrong HTTP method to index this document. You can use either PUT or POST HTTP method to index a document. Each HTTP method serves a different purpose and requires a different syntax. 
+This error message suggests that we used the wrong HTTP method to index this document. 
 
-The HTTP verb PUT is used when you want to assign a specific id to your document. 
+You can use either PUT or POST HTTP method to index a document. Each HTTP method serves a different purpose and requires a different syntax. 
+
+For example:
+
+**The HTTP verb PUT is used when you want to assign a specific id to your document** 
 
 Syntax: 
 ```
 PUT name-of-the-Index/_doc/id-you-want-to-assign-to-this-document
 {
-  "field": "value"
+  field_name: "value"
 }
 ```
 
@@ -119,18 +133,22 @@ PUT common_errors/_doc
   "source_of_error": "Using the wrong syntax for PUT or POST indexing request"
 }
 ```
+
 You will see that our request uses the HTTP verb PUT but it does not include the document id we want to assign to this document. If you add the id of the document as seen below, you will see that the request is carried out without a hitch!
 
+Correct example for PUT indexing request: 
 ```
 PUT common_errors/_doc/1
 {
   "source_of_error": "Using the wrong syntax for PUT or POST indexing request"
 }
 ```
+
 Expected response from Elasticsearch:
+
 ![image](https://user-images.githubusercontent.com/60980933/123681933-a1737080-d807-11eb-80b6-bc67d69ca6b6.png)
 
-The HTTP verb POST is used when you want Elasticsearch to autogenerate an id for the document. 
+**The HTTP verb POST is used when you want Elasticsearch to autogenerate an id for the document.** 
 
 If this is the option you wanted, then you could fix the error message by sending the following request.
 
@@ -138,11 +156,11 @@ Syntax:
 ```
 POST Name-of-the-Index/_doc
 {
-  "field": "value"
+  field_name: "value"
 }
 ```
 
-Example:
+Correct example for POST indexing request:
 ```
 POST common_errors/_doc
 {
@@ -150,12 +168,122 @@ POST common_errors/_doc
 }
 ```
 Expected response from Elasticsearch: 
+
 ![image](https://user-images.githubusercontent.com/60980933/123682487-4a21d000-d808-11eb-8dc2-fe9cae47e95d.png)
 
 Elasticsearch will create an autogenerated id for the document that was indexed(line 4).
 
 **Error 3: 409 Version Conflict**
 
+When you index a document using an id that already exists, the existing document is overwritten by the new document. If you do not want a existing document to be overwritten, you can use the `_create` endpoint!
+
+Suppose we forgot that we indexed a document with an id of 1, and tried to index the following document using the `_create` endpoint and assign it an id of 1. 
+
+Syntax:
+```
+PUT Name-of-the-Index/_create/id-you-want-to-assign-to-this-document
+{
+  "field_name": "value"
+}
+```
+Example: 
+```
+PUT common_errors/_create/1
+{
+  "source_of_error": "Using the _create endpoint to index a document with an existing id"
+}
+```
+Expected response from Elasticsearch:
+
+![image](https://user-images.githubusercontent.com/60980933/123820408-cde6c580-d8b7-11eb-9eaf-e5d44c3c0013.png)
+
+Elasticsearch returns a 409-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the reason(line 6) as "version conflict, document already exists (current version [1])." 
+
+When you see this error after sending a request with a `_create` endpoint, it means that the document with an id of 1 already exist. As the _create endpint is specifically used to prevent the original document from being overwritten, Elasticsearch throws an error and does not index this document.  
+
+**Error 4: 400 Failed to Parse**
+Suppose you wanted to update document 1 and add the fields http_error and solution as seen below. 
+
+Request sent:
+```
+POST common_errors/_update/1
+{
+  "doc": {
+    "http_error": "405 Method Not Allowed"
+    "solution": "Include doc_id a the end of the PUT request"
+  }
+}
+```
+
+Expected response from Elasticsearch:
+
+![image](https://user-images.githubusercontent.com/60980933/123837576-40f83800-d8c8-11eb-884a-dff519a7190e.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 12) as "...was expecting comma to separate Object entries\n at ... line: 4]." 
+
+In Elasticsearch, if you have multiple fields in an object, you must separate each field with a comma. It tells us that we need to add a comma at the end of line 4 in our request. 
+
+Once you add the comma and send the following request:
+```
+POST common_errors/_update/1
+{
+  "doc": {
+    "http_error": "405 Method Not Allowed",
+    "solution": "Include doc id at the end of the PUT request"
+  }
+}
+```
+Expected response from Elasticsearch:
+
+You will see that document with an id of 1 has been successfully updated. 
+![image](https://user-images.githubusercontent.com/60980933/123838019-bb28bc80-d8c8-11eb-95c2-a1bc2f1d490c.png)
+
+If you send a GET request to retrieve document 1:
+```
+GET common_errors/_doc/1
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/123838222-ffb45800-d8c8-11eb-8edc-b4783a997ca0.png)
+
+You will see that the fields solution and http_error have been successfully added to document 1. 
+
+### Errors associated with sending search queries
+Suppose we added a new dataset. We want to retrieve all documents in our index and also see the total number of hits. 
+
+We send the following request:
+```
+GET news_headlines/_search
+{
+  "track total hits": true
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/123839178-10190280-d8ca-11eb-9667-69e6b5e1769e.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "Unknown key for a VALUE_BOOLEAN in [track total hits]." 
+
+Elasticsearch throws an error because it does not recognize the key track total hits. While the correct terms for the key are all there, it does not include underscore between each term. Elasticsearch does not recognize space therefore it throws an error. 
+
+Add an underscore between each term as shown below and send the following request: 
+```
+GET news_headlines/_search
+{
+  "track_total_hits": true
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/123839774-c0870680-d8ca-11eb-9224-d9a939f902a8.png)
+
+Elasticsearch returns the total number of hits(line 12) and displays top 10 hits. 
 
 ### Errors associated with full text search
 ### Errors associated with aggregations
@@ -191,627 +319,5 @@ Expected response from Elasticsearch:
 Elasticsearch will return a 200-success HTTP response and retrieve information about health of your cluster. 
 ![image](https://user-images.githubusercontent.com/60980933/123323535-dbd0cb00-d4f2-11eb-9fd1-925cc011c633.png)
 
-
-
-The following request will index the following document.  
-
-Syntax: 
-```
-POST Enter-name-of-the-index/_doc
-{
-  "field": "value"
-}
-```
-Example: 
-```
-POST temp_index/_doc
-{
-  "name": "Pineapple",
-  "botanical_name": "Ananas comosus",
-  "produce_type": "Fruit",
-  "country_of_origin": "New Zealand",
-  "date_purchased": "2020-06-02T12:15:35",
-  "quantity": 200,
-  "unit_price": 3.11,
-  "description": "a large juicy tropical fruit consisting of aromatic edible yellow flesh surrounded by a tough segmented skin and topped with a tuft of stiff leaves.These pineapples are sourced from New Zealand.",
-  "vendor_details": {
-    "vendor": "Tropical Fruit Growers of New Zealand",
-    "main_contact": "Hugh Rose",
-    "vendor_location": "Whangarei, New Zealand",
-    "preferred_vendor": true
-  }
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch will confirm that this document has been successfully indexed into the temp_index. 
-![image](https://user-images.githubusercontent.com/60980933/120387213-d5ca3e80-c2e6-11eb-8ca8-731222174724.png)
-
-## Mapping Explained
-Mapping determines how a document and its fields are indexed and stored by defining the type of each field.  
-
-![image](https://user-images.githubusercontent.com/60980933/121219417-e7f53100-c840-11eb-9848-7acb3df84227.png)
-
-It contains a list of the names and types of fields in an index. Depending on its type, each field is indexed and stored differently in Elasticsearch.  
-
-### Dynamic Mapping
-When a user does not define mapping in advance, Elasticsearch creates or updates the mapping as needed by default. This is known as `dynamic mapping`. 
-
-![image](https://user-images.githubusercontent.com/60980933/121590398-83c79e00-c9f5-11eb-95f8-e32654447359.png)
-
-With `dynamic mapping`, Elasticsearch looks at each field and tries to infer the data type from the field content. Then, it assigns a type to each field and creates a list of field names and types known as mapping.  
-
-Depending on the assigned field type, each field is indexed and primed for different types of requests(full text search, aggregations, sorting). This is why mapping plays an important role in how Elasticsearch stores and searches for data. 
-
-### View the Mapping 
-Syntax:
-```
-GET Enter_name_of_the_index_here/_mapping
-```
-Example:
-```
-GET temp_index/_mapping
-```
-Expected response from Elasticsearch:
-
-Elasticsearch will return the mapping of the temp_index. It lists all the fields of the document in an alphabetical order and lists the type of each field(text, keyword, long, float, date, boolean and etc). 
-
-![image](https://user-images.githubusercontent.com/60980933/121591969-5c71d080-c9f7-11eb-95dc-70f04276929a.png)
-![image](https://user-images.githubusercontent.com/60980933/121592051-76131800-c9f7-11eb-8820-d3d2b39e1e4f.png)
-![image](https://user-images.githubusercontent.com/60980933/121592106-83c89d80-c9f7-11eb-97fc-56d23b0242ae.png)
-
-For the list of all field types, click [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-types.html)!
-
-### Indexing Strings 
-There are two kinds of string data types:
-1. Text
-2. Keyword
-
-By default, every string gets mapped twice as a text field and as a keyword multi-field. Each data type is primed for different types of requests. 
-
-`Text` field type is designed for full-text searches. 
-
-`Keyword`field type is designed for exact searches, aggregations, and sorting.
-
-You can customize your mapping by assigning the field type as either text or keyword or both! 
-
-#### Text Field Type
-##### Text Analysis
-Ever notice that when you search in Elasticsearch, it is not case sensitive or punctuation does not seem to matter? This is because `text analysis` occurs when your fields are indexed. 
-
-By default, strings are analyzed when it is indexed. The string is broken up into individual words also known as tokens. The analyzer further lowercases each token and removes punctuations. 
-
-![image](https://user-images.githubusercontent.com/60980933/120847933-672cf100-c531-11eb-9b9c-522c354b0e10.png)
-
-**Inverted Index**
-![image](https://user-images.githubusercontent.com/60980933/121099236-b33b9800-c7b4-11eb-837b-a914ed8e3725.png)
-Once the string is analyzed, the individual tokens are stored in a sorted list known as the `inverted index`. Each unique token is stored in the `inverted index` with its associated ID. 
-
-The same process occurs every time you index a new document. 
-
-![image](https://user-images.githubusercontent.com/60980933/122119940-0d58e080-cde7-11eb-903b-54a628b8de60.png)
-![image](https://user-images.githubusercontent.com/60980933/122119962-147fee80-cde7-11eb-915e-3531c405a315.png)
-![image](https://user-images.githubusercontent.com/60980933/122119979-19dd3900-cde7-11eb-86e4-274b5e44fec2.png)
-![image](https://user-images.githubusercontent.com/60980933/122120075-324d5380-cde7-11eb-9b4e-744dfa6d527d.png)
-
-#### Keyword Field Type
-`Keyword` field type is used for aggregations, sorting, and exact searches. These actions look up the document ID to find the values it has in its fields. 
-
-`Keyword` field is suited to perform these actions because it uses a data structure called `doc values` to store data. 
-
-For each document, the document id along with the field value(original string) are added to a table. This data structure(`doc values`) is designed for actions that require looking up the document ID to find the values it has in its fields.
-
-![image](https://user-images.githubusercontent.com/60980933/121603436-fccef180-ca05-11eb-817e-cb77b46ae969.png)
-
-When Elasticsearch dynamically creates a mapping for you, it does not know what you want to use a string for so it maps all strings to both field types. 
-
-In case where you do not need both field types, the default setting is wasteful because it slows down indexing and takes up more disk space.  
-
-Defining our own mapping could help us store and search data more efficiently.
-
-### Mapping Exercise
-
-**Project**: Build an app for a client who manages a produce warehouse 
-
-**This app must enable users to:** 
-1. Search for produce name, country of origin and description
-
-2. Identify top countries of origin with the most frequent purchase history
-
-3. Sort produce by produce type(Fruit or Vegetable)
-
-4. Get the summary of monthly expense
-
-**Sample data**
-```
-{
-  "name": "Pineapple",
-  "botanical_name": "Ananas comosus",
-  "produce_type": "Fruit",
-  "country_of_origin": "New Zealand",
-  "date_purchased": "2020-06-02T12:15:35",
-  "quantity": 200,
-  "unit_price": 3.11,
-  "description": "a large juicy tropical fruit consisting of aromatic edible yellow flesh surrounded by a tough segmented skin and topped with a tuft of stiff leaves.These pineapples are sourced from New Zealand.",
-  "vendor_details": {
-    "vendor": "Tropical Fruit Growers of New Zealand",
-    "main_contact": "Hugh Rose",
-    "vendor_location": "Whangarei, New Zealand",
-    "preferred_vendor": true
-  }
-}
-```
-**Plan of Action**
-![image](https://user-images.githubusercontent.com/60980933/121710560-f89ee480-ca96-11eb-98c5-ba9a535e4360.png)
-![image](https://user-images.githubusercontent.com/60980933/122120548-cc150080-cde7-11eb-8613-a4ec5a5c115e.png)
-![image](https://user-images.githubusercontent.com/60980933/121604184-4c61ed00-ca07-11eb-84f8-208c3e927a08.png)
-![image](https://user-images.githubusercontent.com/60980933/122100555-8ac52680-cdd0-11eb-843f-556fa5313e15.png)
-![image](https://user-images.githubusercontent.com/60980933/121749036-3b78b080-cac7-11eb-8706-561a1bb61315.png)
-![image](https://user-images.githubusercontent.com/60980933/121749523-09b41980-cac8-11eb-8214-e986760e5d96.png)
-![image](https://user-images.githubusercontent.com/60980933/122100826-d972c080-cdd0-11eb-995c-048e6709ef57.png)
-
-### Defining your own mapping
-**Rules**
-1. If you do not define a mapping ahead of time, Elasticsearch dynamically creates the mapping for you.
-2. If you do decide to define your own mapping, you can do so at index creation.
-3. ONE mapping is defined per index. Once the index has been created, we can only add *new* fields to a mapping. We CANNOT change the mapping of an *existing* field. 
-4. If you must change the type of an existing field, you must create a new index with the desired mapping, then reindex all documents into the new index. 
-
-**Step 1: Index a sample document into a test index.**
-
-The sample document must contain the fields that you want to define. These fields must also contain values that map closely to the field types you want. 
-
-Syntax:
-```
-POST Name-of-test-index/_doc
-{
-  "field": "value"
-}
-```
-Example:
-```
-POST test_index/_doc
-{
-  "name": "Pineapple",
-  "botanical_name": "Ananas comosus",
-  "produce_type": "Fruit",
-  "country_of_origin": "New Zealand",
-  "date_purchased": "2020-06-02T12:15:35",
-  "quantity": 200,
-  "unit_price": 3.11,
-  "description": "a large juicy tropical fruit consisting of aromatic edible yellow flesh surrounded by a tough segmented skin and topped with a tuft of stiff leaves.These pineapples are sourced from New Zealand.",
-  "vendor_details": {
-    "vendor": "Tropical Fruit Growers of New Zealand",
-    "main_contact": "Hugh Rose",
-    "vendor_location": "Whangarei, New Zealand",
-    "preferred_vendor": true
-  }
-}
-```
-Expected response from Elasticsearch:
-
-The test_index has been successfully created. 
-![image](https://user-images.githubusercontent.com/60980933/121616770-c81c6380-ca20-11eb-9f3a-593e61eff319.png)
-
-**Step 2: View the dynamic mapping** 
-
-Syntax:
-```
-GET Name-the-index-whose-mapping-you-want-to-view/_mapping
-```
-
-Example:
-```
-GET test_index/_mapping
-```
-Expected response from Elasticsearch:
-
-Elasticsearch will display the mapping it has created. It lists the fields in alphabetical order. This document is identical to the one we indexed into temp_index. To save space, the screenshots of the mapping has not been included here. 
-
-**Step 3: Edit the mapping**
-
-Copy and paste the mapping from step 2 into the Kibana console. From the pasted results, remove the test index along with its opening and closing brackets. Edit the mapping to satisfy the requirements of your use case.  
-
-![image](https://user-images.githubusercontent.com/60980933/122103275-ad0c7380-cdd3-11eb-9a74-babe7442e5b3.png)
-
-The optimized mapping should look like the following: 
-```
-{
-  "mappings": {
-    "properties": {
-      "botanical_name": {
-        "enabled": false
-      },
-      "country_of_origin": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword"
-          }
-        }
-      },
-      "date_purchased": {
-        "type": "date"
-      },
-      "description": {
-        "type": "text"
-      },
-      "name": {
-        "type": "text"
-      },
-      "produce_type": {
-        "type": "keyword"
-      },
-      "quantity": {
-        "type": "long"
-      },
-      "unit_price": {
-        "type": "float"
-      },
-      "vendor_details": {
-        "enabled": false
-      }
-    }
-  }
-}
-```
-![image](https://user-images.githubusercontent.com/60980933/122103954-68350c80-cdd4-11eb-82c4-83b47bc364dc.png)
-
-**Step 4: Create a new index with the optimized mapping from step 3.** 
-
-Syntax:
-```
-PUT Name-of-your-final-index
-{
-  copy and paste your edited mapping here
-}
-```
-Example: 
-```
-PUT produce_index
-{
-  "mappings": {
-    "properties": {
-      "botanical_name": {
-        "enabled": false
-      },
-      "country_of_origin": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword"
-          }
-        }
-      },
-      "date_purchased": {
-        "type": "date"
-      },
-      "description": {
-        "type": "text"
-      },
-      "name": {
-        "type": "text"
-      },
-      "produce_type": {
-        "type": "keyword"
-      },
-      "quantity": {
-        "type": "long"
-      },
-      "unit_price": {
-        "type": "float"
-      },
-      "vendor_details": {
-        "enabled": false
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch creates a produce_index with the customized mapping we defined above! 
-
-![image](https://user-images.githubusercontent.com/60980933/121618138-89d47380-ca23-11eb-96e3-68204da782dc.png)
-
-**Step 5: Check the mapping of the new index to make sure the all the fields have been mapped correctly**
-
-Syntax:
-```
-GET Name-of-test-index/_mapping
-```
-
-Example:
-```
-GET produce_index/_mapping
-```
-Expected response from Elasticsearch:
-
-Compared to the dynamic mapping, our optimized mappign looks more simple and concise!  The current mapping satisfies the requirements that are marked with green check marks. 
-
-![image](https://user-images.githubusercontent.com/60980933/121619679-3879b380-ca26-11eb-9ac9-ed19a52c05c2.png)
-![image](https://user-images.githubusercontent.com/60980933/121619466-e5076580-ca25-11eb-8c59-ec2caf3ddb50.png)
-![image](https://user-images.githubusercontent.com/60980933/121619506-f5b7db80-ca25-11eb-9916-fea11e8fd79d.png)
-
-
-**Step 6: Index your dataset into the new index**
-
-For simplicity's sake, we will index two documents. 
-
-*Index first document*
-
-```
-POST produce_index/_doc
-{
-  "name": "Pineapple",
-  "botanical_name": "Ananas comosus",
-  "produce_type": "Fruit",
-  "country_of_origin": "New Zealand",
-  "date_purchased": "2020-06-02T12:15:35",
-  "quantity": 200,
-  "unit_price": 3.11,
-  "description": "a large juicy tropical fruit consisting of aromatic edible yellow flesh surrounded by a tough segmented skin and topped with a tuft of stiff leaves.These pineapples are sourced from New Zealand.",
-  "vendor_details": {
-    "vendor": "Tropical Fruit Growers of New Zealand",
-    "main_contact": "Hugh Rose",
-    "vendor_location": "Whangarei, New Zealand",
-    "preferred_vendor": true
-  }
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch has successfully indexed the first document. 
-![image](https://user-images.githubusercontent.com/60980933/121621403-5563b600-ca29-11eb-8ee9-83686a937fd2.png)
-
-*Index second document*
-
-The second document has almost identical fields as the first document except that it has an extra field called organic set to true!
-```
-POST produce_index/_doc
-{
-  "name": "Mango",
-  "botanical_name": "Harum Manis",
-  "produce_type": "Fruit",
-  "country_of_origin": "Indonesia",
-  "organic": true,
-  "date_purchased": "2020-05-02T07:15:35",
-  "quantity": 500,
-  "unit_price": 1.5,
-  "description": "Mango Arumanis or Harum Manis is originated from East Java. Arumanis means harum dan manis or fragrant and sweet just like its taste. The ripe Mango Arumanis has dark green skin coated with thin grayish natural wax. The flesh is deep yellow, thick, and soft with little to no fiber. Mango Arumanis is best eaten when ripe.",
-  "vendor_details": {
-    "vendor": "Ayra Shezan Trading",
-    "main_contact": "Suharto",
-    "vendor_location": "Binjai, Indonesia",
-    "preferred_vendor": true
-  }
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch has successfully indexed the second document. 
-![image](https://user-images.githubusercontent.com/60980933/121621463-73c9b180-ca29-11eb-9849-955b8d7872fb.png)
-
-Let's see what happens to the mapping by sending this request below: 
-```
-GET produce_index/_mapping
-```
-Expected response from Elasticsearch:
-
-The new field(organic) and its field type(boolean) have been added to the mapping. This is in line with the rules of mapping we discussed earlier since you can add *new* fields to the mapping. We just cannot change the mapping of an *existing* field! 
-
-![image](https://user-images.githubusercontent.com/60980933/121694928-d2257d00-ca87-11eb-9141-77143d59081a.png)
-![image](https://user-images.githubusercontent.com/60980933/121694969-db164e80-ca87-11eb-9ddf-479af3077c46.png)
-
-#### What if you do need to make changes to the field type? 
-Let's say your client changed his mind. He wants to run only full text search on the field botanical name we disabled earlier. 
-
-Remember, you CANNOT change the mapping of an *existing* field. If you do need to make changes to the existing field, you must create a new index with the desired mapping, then reindex all documents into the new index. 
-
-**STEP 1: Create a new index(produce_v2) with the latest mapping.**
-
-We removed the enabled parameter from the field botanical_name and changed its type to text. 
-
-Example:
-```
-PUT produce_v2
-{
-  "mappings": {
-    "properties": {
-      "botanical_name": {
-        "type": "text"
-      },
-      "country_of_origin": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "date_purchased": {
-        "type": "date"
-      },
-      "description": {
-        "type": "text"
-      },
-      "name": {
-        "type": "text"
-      },
-      "organic": {
-        "type": "boolean"
-      },
-      "produce_type": {
-        "type": "keyword"
-      },
-      "quantity": {
-        "type": "long"
-      },
-      "unit_price": {
-        "type": "float"
-      },
-      "vendor_details": {
-        "type": "object",
-        "enabled": false
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch creates a new index(produce_v2) with the latest mapping. 
-![image](https://user-images.githubusercontent.com/60980933/121725821-fb093a80-caa6-11eb-8e76-aa84704fb951.png)
-
-If you check the mapping, you will see that the botanical_name field has been typed as text. 
-
-**View the mapping of produce_v2:**
-```
-GET produce_v2/_mapping
-```
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/121725730-e036c600-caa6-11eb-8b9d-5a9ca0a72a3c.png)
-![image](https://user-images.githubusercontent.com/60980933/121725765-e88f0100-caa6-11eb-9610-97cbf980e6c2.png)
-
-**STEP 2: Reindex the data from original index(produce_index) to the one you just created(produce_v2).**
-```
-POST _reindex
-{
-  "source": {
-    "index": "produce_index"
-  },
-  "dest": {
-    "index": "produce_v2"
-  }
-}
-```
-Expected response form Elasticsearch:
-
-This request moves data from the produce_index to the produce_v2 index. produce_v2 index can now be used to run the requests that the client has specified. 
-
-![image](https://user-images.githubusercontent.com/60980933/121726550-ee391680-caa7-11eb-89a9-be1d4416e0e3.png)
-
-#### Runtime Field
-![image](https://user-images.githubusercontent.com/60980933/122100555-8ac52680-cdd0-11eb-843f-556fa5313e15.png)
-![image](https://user-images.githubusercontent.com/60980933/121749036-3b78b080-cac7-11eb-8706-561a1bb61315.png)
-![image](https://user-images.githubusercontent.com/60980933/121749523-09b41980-cac8-11eb-8214-e986760e5d96.png)
-
-**Step 1: Create a `runtime field` and add it to the mapping of the existing index.** 
-
-Syntax:
-```
-PUT Enter-name-of-index/_mapping
-{
-  "runtime": {
-    "Name-your-runtime-field-here": {
-      "type": "Specify-field-type-here",
-      "script": {
-        "source": "Specify the formula you want executed"
-      }
-    }
-  }
-}
-```
-Example:
-```
-PUT produce_v2/_mapping
-{
-  "runtime": {
-    "total": {
-      "type": "double",
-      "script": {
-        "source": "emit(doc['unit_price'].value* doc['quantity'].value)"
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch: 
-
-Elasticsearch successfully adds the `runtime field` to the mapping. 
-![image](https://user-images.githubusercontent.com/60980933/121744031-8393d500-cabf-11eb-850c-2e13cf79a92a.png)
-
-**Step 2: Check the mapping:**
-```
-GET produce_v2/_mapping
-```
-Expected response from Elasticsearch:
-
-Elasticsearch adds a `runtime field` to the mapping up top. Note that the `runtime field` is not listed under properties. This is because `runtime field` is not indexed! The `runtime field` total is only created and calculated at runtime as you execute your request. 
-
-![image](https://user-images.githubusercontent.com/60980933/121744102-a1613a00-cabf-11eb-98f0-15c25ab97773.png)
-![image](https://user-images.githubusercontent.com/60980933/121744120-a7efb180-cabf-11eb-9a7b-3e38e83297e3.png)
-
-**Step 3: Run a request on the `runfield` to see it perform its magic!** 
-
-Please note that the following request does not aggregate the monthly expense here. We are running a simple aggregation request to demonstrate how `runtime field` works!  
-
-The following request runs a sum aggregation against the `runtime field` total of all documents in our index. 
-
-Syntax:
-```
-GET Enter_name_of_the_index_here/_search
-{
-  "size": 0,
-  "aggs": {
-    "Name your aggregations here": {
-      "Specify the aggregation type here": {
-        "field": "Name the field you want to aggregate on here"
-      }
-    }
-  }
-}
-```
-
-Example:
-```
-GET produce_v2/_search
-{
-  "size": 0,
-  "aggs": {
-    "total_expense": {
-      "sum": {
-        "field": "total"
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-
-When this request is sent, a `Runtime field` called total is created and calculated for documents within the scope of our request(entire index). Then, the sum aggregation is ran on the field total of documents in question. 
-
-![image](https://user-images.githubusercontent.com/60980933/121815555-50268700-cc34-11eb-8fb4-8112cb8e0806.png)
-
-`Runtime field` is only created and calculated when the request is being executed. `Runtime fields` are not indexed so these do not take up disk space.  We also didn’t have to reindex in order to add a new field to existing documents.
-
-For more information on runtime fields, check out this [blog](https://www.elastic.co/blog/introducing-elasticsearch-runtime-fields)! 
-
-### Questions from the workshop
-**Q:  If possible please explain the _meta in mapping which was part of previous video.**
-
-A: Of course! _meta in mapping this question is referring to [workshop part 4](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana).
-
-![image](https://user-images.githubusercontent.com/60980933/122953873-3247d900-d33c-11eb-8c77-d3f344ddbf43.png)
-
-I should have just removed the _meta part before I published this repo. Thank you for submitting a pull request on GitHub @radhakrishnaakamat!
-
-So the _meta field was automatically created by the ml file data visualizer. This is a field where you can store any information regarding the index or the app for developers who are managing it. Think of this field as a place where you can include information regarding the app so developers have info necessary to debug.
-
-The _meta field is optional and deleting the _meta field will not affect the mapping in any way whatsoever. I am going to delete this field in my part 4 workshop repo as it has been causing a lot of confusion! 
-
-**Q:  After you create a new mapping, how do you configure your ingest to use the new mapping?**
-
-
-A: I should have asked for clarification as this question can be interpreted in many different ways. 
-
-If I didn't interpret it correctly, please let me know via Twitter @LisaHJung and I will add the answer to this repo! 
-
-If you were referring to a situation where you have an old index with outdated mapping that needed to be changed:
-
-Remember, we cannot change the mapping of an existing field. Even if you add a new field to a mapping, it only adds the new field to the list of field names and types. It does not add the new field to documents that have been indexed prior to adding a new field to the mapping.
-
-You must create a new index with the desired mapping, then reindex documents from the old index to the new one, and direct requests to the new index! 
 
 
