@@ -287,7 +287,54 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns the total number of hits(line 12) and displays top 10 hits. 
 
-**Error 1: 400 [X] query does not support [y]**
+**Error 1: 400 [X] query does not support multiple fields**
+
+Suppose you want to use the match query to pull up all documents where the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12". 
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "match": {
+      "category": "ENTERTAINMENT",
+      "date":"2018-04-12"
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[match] query doesn't support multiple fields, found [category] and [date]." 
+
+Elasticsearch throws an error because the match query does not support multiple fields. To search in multiple fields at the same time, you use the bool query. 
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "category": "ENTERTAINMENT"
+          }
+        },
+        {
+          "match": {
+            "date": "2018-04-12"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+Expected response from Elastcsearch:
+![image](https://user-images.githubusercontent.com/60980933/124649175-61d70500-de55-11eb-85d3-050ef35f3819.png)
+Elasticsearch returns top 10 hits with documents whose the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12".
+
+**Error 2: 400 [X] query does not support [y]**
 
 Suppose you want to use the range query to pull up all documents where the date field contains a term between the two date ranges provided:
 ```
@@ -334,7 +381,211 @@ Expected response from Elasticsearch:
 ![image](https://user-images.githubusercontent.com/60980933/123855939-bc181900-d8dd-11eb-9aed-0cbe6d80ced5.png)
 Elasticsearch retrieves documents whose ranges fall in the range provided in the request. 
 
+**Error 2: 400 error Aggregation definition for [x], expected a [y] **
+
+Suppose you want to send an aggregation request to get the summary of all categories that exist in our dataset. The size parameter allows you to specify how many hits should be returned in the response. Since you only want aggregations results, you add a size parameter and set it equal to 0 to avoid fetching the hits. 
+
+```
+GET news_headlines/_search
+{
+  "aggs": {
+    "size": 0,
+    "by_category": {
+      "terms": {
+        "field": "category"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124624234-f29fe780-de39-11eb-83b9-0614e0cdc925.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "Aggregation definition for [size starts with a [VALUE_NUMBER], expected a [START_OBJECT]." 
+
+This error is occuring because aggregation requests always starts with the name of aggregation. The size parameter allows you to specify how many hits should be returned in the response. Depending on where the size parameter is placed, it can return different things. 
+
+By default, Elasticsearch returns top 10 hits whenever the request is sent. If you do not want any hits to be returned, you would place the size parameter in the outermost bracket as shown below. You will see that this will prevent Elasticsearch from fetching the top 10 hits. 
+
+You will also notice that there is an addi
+
+```
+GET news_headlines/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_category": {
+      "terms": {
+        "field": "category"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124628166-74454480-de3d-11eb-9a8d-adc9cf80673e.png)
+Elasticsearch does not retrieve the top 10 hits(line 16), you can see the aggregations results immediately. You will see that it returns an array of categories. 
+
+Supppose you want to send the same aggregation request but you want to limit the number of categories returned up to the top 15 with the most number of documents. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. Depending on where you place the size parameter, the scope of the size parameter changes. 
+```
+GET news_headlines/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_category": {
+      "terms": {
+        "size": 15,
+        "field": "category"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124629000-3b599f80-de3e-11eb-8886-0d4ef541f846.png)
+
+You will see that top 10 hits have been omitted from the response and 15 top categories are returned.
+
+***Error 4*** 
+```
+GET news_headlines/_search
+{
+  "query": {
+    "match": {
+      "headline": "Khloe Kardashian Kendall Jenner",
+      "operator": "and"
+    }
+  }
+}
+```
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[match] query doesn't support multiple fields, found [headline] and [operator]." 
+
+This error is occuring because the match query only supports one field. In order to get around this issue, add a query clause under the match cluase and include the operator as shown below. 
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "match": {
+      "headline": {
+        "query": "Khloe Kardashian Kendall Jenner",
+        "operator": "and"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124653511-9d280280-de5a-11eb-8856-1df03a832bac.png)
+It pulls up one hit that contains all four search terms in the query. 
+
+minimum should match is included here. 
 ### Errors associated with full text search
+
+**Error 400 unexpected character**
+Suppose you are searching for the search terms Michelle and Obama in multiple fields. So you use the multi_match query as whown below:
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "Michelle Obama",
+      "fields": [
+        "headline",
+        "short_description"
+        "authors"
+      ]
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124657891-4c1b0d00-de60-11eb-866a-67b296fb1e93.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "json_parsing_exception" and the reason(line 12) as "Unexpected character ...: was expecting comma to separate Array entries\n at ... line: 8...]" 
+
+This error is occuring because we are missing a comma in line 8. In the fields array, items must be separated by a comma. 
+
+Add the comma as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "Michelle Obama",
+      "fields": [
+        "headline",
+        "short_description",
+        "authors"
+      ]
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124658052-897f9a80-de60-11eb-9f4b-4b4c21f1ebb8.png)
+
+Elasticsearch returns hits that contain the term "Michelle" or Obama" in the fields headline, short_description, and authors. 
+
+**Error 400 json_parse_exception**
+Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+    }
+    "type": "phrase"
+  }
+}
+```
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
+
+This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
+
+If you move the type parameter up a line as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+      "type": "phrase"
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
+
+It returns 6 hits with the phrase party planning in either fields headline or short description. 
+
+
 ### Errors associated with aggregations
 ### Errors associated with mapping
 ### Errors associated with nodes and shards
