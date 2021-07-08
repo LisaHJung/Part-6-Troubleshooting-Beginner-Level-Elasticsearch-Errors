@@ -587,6 +587,279 @@ It returns 6 hits with the phrase party planning in either fields headline or sh
 
 
 ### Errors associated with aggregations
+
+**Error 400- illegal argument exception**
+```
+GET eo/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_by_8_hrs": {
+      "date_histogram": {
+        "field": "InvoiceDate",
+        "fixed_interval": "8h"
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]"
+
+![image](https://user-images.githubusercontent.com/60980933/124955596-6544ca80-dfd4-11eb-8c8f-532f3ac2a09f.png)
+
+It refers to the type of the field(mapping) so let's take a look at the mapping. 
+```
+GET eo/_mapping
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124956943-c8832c80-dfd5-11eb-8958-be6d18705199.png)
+
+![image](https://user-images.githubusercontent.com/60980933/124955596-6544ca80-dfd4-11eb-8c8f-532f3ac2a09f.png)
+
+This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. It must have type as date and the format of the date must be specified. 
+
+Create a new index(ecommerce_data) with the following mapping.
+```
+PUT ecommerce_data
+{
+  "mappings": {
+    "properties": {
+      "Country": {
+        "type": "keyword"
+      },
+      "CustomerID": {
+        "type": "long"
+      },
+      "Description": {
+        "type": "text"
+      },
+      "InvoiceDate": {
+        "type": "date",
+        "format": "M/d/yyyy H:m"
+      },
+      "InvoiceNo": {
+        "type": "keyword"
+      },
+      "Quantity": {
+        "type": "long"
+      },
+      "StockCode": {
+        "type": "keyword"
+      },
+      "UnitPrice": {
+        "type": "double"
+      }
+    }
+  }
+}
+```
+```
+POST _reindex
+{
+  "source": {
+    "index": "eo"
+  },
+  "dest": {
+    "index": "ecommerce_data"
+  }
+}
+```
+
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_by_8_hrs": {
+      "date_histogram": {
+        "field": "InvoiceDate",
+        "fixed_interval": "8h"
+      }
+    }
+  }
+}
+```
+**Errors 400 json_parse_exception**
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_per_custom_price_ranges": {
+      "range": {
+        "field": "UnitPrice",
+        "ranges": 
+          {
+            "to": 50
+          },
+          {
+            "from": 50,
+            "to": 200
+          },
+          {
+            "from": 200
+          }
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124959022-05502300-dfd8-11eb-96e9-210119cf2144.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 5) as "json_parse_exception" and the reason(line 5) as "Unexpected character... was expecting double-quote to start field name at ... line: 11, column: 12]"
+
+Hm... have no idea how to fix this. Go to the docs and search for range aggregation. 
+Ranges must be contained within square brackets. 
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_per_custom_price_ranges": {
+      "range": {
+        "field": "UnitPrice",
+        "ranges": [
+          {
+            "to": 50
+          },
+          {
+            "from": 50,
+            "to": 200
+          },
+          {
+            "from": 200
+          }
+        ]
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124960941-1a2db600-dfda-11eb-954c-23db5ebcd41c.png)
+
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "5_customers_with_lowest_number_of_transactions": {
+      "terms": {
+        "field": "CustomerID",
+        "size": 5,
+        "order": 
+          "_count": "asc"
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124961200-67aa2300-dfda-11eb-839f-488415572f03.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 5) as "x_content_parse_exception" and the reason(line 6) as "[9:11] [terms] order doesn't support values of type: VALUE_STRING"
+
+This error is occuring because you must put the curly brackets around order field. 
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "5_customers_with_lowest_number_of_transactions": {
+      "terms": {
+        "field": "CustomerID",
+        "size": 5,
+        "order": {
+          "_count": "asc"
+        }
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124961559-dedfb700-dfda-11eb-86fe-53b0f8ba13ad.png)
+It returns top 5 customers with the lowest transactions. 
+
+Combined aggregation:
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_per_day": {
+      "date_histogram": {
+        "field": "InvoiceDate",
+        "calendar_interval": "day",
+        "order": {
+          "daily_revenue": "desc"
+        }
+      },
+        "daily_revenue": {
+          "sum": {
+            "script": {
+              "source": "doc['UnitPrice'].value * doc['Quantity'].value"
+            }
+          }
+        },
+        "number_of_unique_customers_per_day": {
+          "cardinality": {
+            "field": "CustomerID"
+        }
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124964478-506d3480-dfde-11eb-85b2-d0a236bb0832.png)
+
+You can have multiple aggregations request within one aggregation. however, the type must be the same. Here you have a bucket aggreagation(date_historam) and metric aggregations(sum aggregation and cardinality aggregation) mixed in one aggregations request. 
+
+```
+GET ecommerce_data/_search
+{
+  "size": 0,
+  "aggs": {
+    "transactions_per_day": {
+      "date_histogram": {
+        "field": "InvoiceDate",
+        "calendar_interval": "day",
+        "order": {
+          "daily_revenue": "desc"
+        }
+      },
+      "aggs": {
+        "daily_revenue": {
+          "sum": {
+            "script": {
+              "source": "doc['UnitPrice'].value * doc['Quantity'].value"
+            }
+          }
+        },
+        "number_of_unique_customers_per_day": {
+          "cardinality": {
+            "field": "CustomerID"
+          }
+        }
+      }
+    }
+  }
+}
+```
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124964180-f10f2480-dfdd-11eb-8154-e2b8a418f047.png)
+
 ### Errors associated with mapping
 ### Errors associated with nodes and shards
 
