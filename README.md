@@ -1,14 +1,15 @@
 # Beginner's Crash Course to Elastic Stack Series
-## Part-6-Troubleshooting-beginner-level-Elasticsearch-Errors
+## Part-6-Troubleshooting-Beginner-Level-Elasticsearch-Errors
+
 Welcome to the Beginner's Crash Course to Elastic Stack!
 
-This repo contains all resources shared during Part 6: Troubleshooting beginner-level Elasticsearch Errors!
+This repo contains all resources shared during Part 6: Troubleshooting Beginner-Level Elasticsearch Errors!
 
 Throughout the series, we have learned about nodes and shards, fine tuning the relevance of your search, full text search, aggregation, and mapping. 
 
 As you continue your journey with Elasticsearch, you will inevitably encounter some common errors associated with the topics we have covered in the series. 
 
-Rind out how to troubleshoot these pesky errors so you can get unstuck! 
+Learn how to troubleshoot these pesky errors so you can get unstuck! 
 
 ## Resources
 
