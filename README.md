@@ -28,35 +28,45 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 Want to attend live workshops? Join the Elastic Americal Virtual Chapter to get the deets!
 
 ## Follow the clues! 
-Whenever you perform an action with Elasticsearch and Kibana, Elasticsearch responds back with an HTTP status and a response body. 
+Whenever you perform an action with Elasticsearch and Kibana, Elasticsearch responds with an HTTP status and a response body. 
 
 ![image](https://user-images.githubusercontent.com/60980933/123306018-fe0c1e00-d4dd-11eb-931d-6c8f7b90eb26.png)
 
-The HTTP status of 201-success indicates that the document has been successfully indexed. The response body indicates that document with an assigned id of 1 has been created in the beginners_crash course index. 
+The HTTP status of 201-success indicates that the document has been successfully created. The response body indicates that document with an assigned id of 1 has been created in the beginners_crash_course index. 
 
 When the request fails, the HTTP status and response body provide valuable clues as to why the request failed so you can fix the error! 
 
-### Common HTTP Errors
-#### 4XX errors
+### Common Errors
+#### Unable to connect
+The cluster may be down or it may be a network issue. Check the network status and cluster health to identify the problem. 
+#### Connection unexpectedly closed
+The node may have died or it may be a network issue. Retry your request. 
+#### 5XX Error
+HTTP errors that start with 5 stems from internal server error in Elasticsearch. When you see this, take a look at the Elasticsearch log and identify the problem. 
+#### 4XX Error
 HTTP errors that start with 4 stems from client errors. When you see this, correct the request before retrying. 
 
+At beginner level, many error messages occur because of the way the request is written(4XX error). We will focus on 4XX errors during this workshop. 
+
 ## Approach
-1. Does the HTTP response start with 4xx or 5xx? 
+1. What number does the HTTP response start with(4XX? 5XX?)
 2. What does the response say?
 
 ## Trip down memory lane
-Throughout the Beginner's Crash Course to Elastic Stack Series, we have covered these topics:
-1. Nodes and Shards
-2. CRUD operations
-3. Full text search
-4. Aggregations
-5. Mapping
+Throughout the series, we have learned how to send requests that are related to following topics:
+
+1. CRUD operations
+2. Queries
+3. Aggregations
+4. Mapping
 
 We will revisit each topic and go over common errors you may encounter as you explore these topics further. 
 
 ### Errors associated with CRUD operations
-**Error 1: 404 Not Found**
-In part 1: Intro to Elasticsearch and Kibana, we learned how to perform CRUD operations. Let's say we send the following request to retrieve a document with an id of 1 from the index common_errors.
+
+**Error 1: 404 index_not_found_exception**
+
+In [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana), we learned how to perform CRUD operations. Let's say we sent the following request to retrieve a document with an id of 1 from the index `common_errors`.
 
 Request sent: 
 ```
@@ -64,20 +74,21 @@ GET common_errors/_doc/1
 ```
 
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/123666137-2d7c9c80-d7f6-11eb-94de-6719dc562f3f.png)
+![image](https://user-images.githubusercontent.com/60980933/125141088-41b37a00-e0d1-11eb-957a-77bcea7207d7.png)
 
 Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-If you look at the response, Elasticsearch lists the reason as "no such index [common_errors]." Two possible explanations are:
+When you look at the response body, Elasticsearch lists the reason(line 6) as "no such index [common_errors]." 
+
+Two possible explanations for this error are:
 1. The index common_errors truly does not exist or was deleted
 2. We do not have the correct index name
 
 **Cause of Error 1** 
+
 In our example, the cause of the error is quite clear! We have not created an index called common_errors and we were trying to retrieve a document from an index that does not exist. 
 
-Let's create one! 
-
-Create an index called common_errors:
+Let's create an index called common_errors:
 
 Syntax:
 ```
@@ -89,33 +100,35 @@ PUT common_errors
 ```
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/123671494-9581b180-d7fb-11eb-864a-8577917d95ee.png)
+Elasticsearch returns a 200-success HTTP response acknowledging that the index common_errors has been successfully created. 
+
+![image](https://user-images.githubusercontent.com/60980933/125141169-80e1cb00-e0d1-11eb-83e7-bdbf8f7244ea.png)
 
 **Error 2: 405 Method Not Allowed**
+
 Now that we have created the index common_errors, let's index a document!
 
-Suppose you have remembered that you could use the HTTP verb PUT to index a document and sent the following request. 
-
+Suppose you have remembered that you could use the HTTP verb PUT to index a document and send the following request: 
 ```
 PUT common_errors/_doc
 {
-"source_of_error": "Using the wrong syntax for PUT or POST indexing request"
+  "source_of_error": "Using the wrong syntax for PUT or POST indexing request"
 }
 ```
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/123680880-69b7f900-d806-11eb-91af-a05ad9298a4a.png)
 
 Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
 If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... allowed:[POST]." 
 
-**Cause of Error 2 : Mixing up the request syntax for POST and PUT operations**
+![image](https://user-images.githubusercontent.com/60980933/125142331-b50abb00-e0d4-11eb-92fd-c05eface3fb7.png)
 
-This error message suggests that we used the wrong HTTP method to index this document. 
+**Cause of Error 2**  
+This error message suggests that we used the wrong HTTP verb to index this document. 
 
-You can use either PUT or POST HTTP method to index a document. Each HTTP method serves a different purpose and requires a different syntax. 
+You can use either PUT or POST HTTP verb to index a document. Each HTTP verb serves a different purpose and requires a different syntax. 
 
-For example:
+We learned about the difference between the two during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under index a document section.  
 
 **The HTTP verb PUT is used when you want to assign a specific id to your document** 
 
@@ -135,7 +148,7 @@ PUT common_errors/_doc
 }
 ```
 
-You will see that our request uses the HTTP verb PUT but it does not include the document id we want to assign to this document. If you add the id of the document as seen below, you will see that the request is carried out without a hitch!
+You will see that our request uses the HTTP verb PUT but it does not include the document id we want to assign to this document. If you add the id of the document to the request as seen below, you will see that the request is carried out without a hitch!
 
 Correct example for PUT indexing request: 
 ```
@@ -147,7 +160,9 @@ PUT common_errors/_doc/1
 
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/123681933-a1737080-d807-11eb-80b6-bc67d69ca6b6.png)
+Elasticsearch returns a 201-success HTTP response acknowledging that document 1 has been successfully created. 
+
+![image](https://user-images.githubusercontent.com/60980933/125142771-c4d6cf00-e0d5-11eb-9634-b0cb19e5117f.png)
 
 **The HTTP verb POST is used when you want Elasticsearch to autogenerate an id for the document.** 
 
@@ -170,9 +185,9 @@ POST common_errors/_doc
 ```
 Expected response from Elasticsearch: 
 
-![image](https://user-images.githubusercontent.com/60980933/123682487-4a21d000-d808-11eb-8dc2-fe9cae47e95d.png)
+Elasticsearch returns a 201-success HTTP response and autogenerates an id(line 4) for the document that was indexed.
 
-Elasticsearch will create an autogenerated id for the document that was indexed(line 4).
+![image](https://user-images.githubusercontent.com/60980933/125143039-94dbfb80-e0d6-11eb-88f3-11ac19d02b95.png)
 
 **Error 3: 409 Version Conflict**
 
