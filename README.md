@@ -267,6 +267,7 @@ Expected response from Elasticsearch:
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
 **The Cause of Error 4**
+
 If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
 In Elasticsearch, if you have multiple fields in an object("doc"), you must separate each field with a comma. The error message tells us that we need to add a comma at the end of line 4 in our request. 
@@ -295,16 +296,37 @@ GET common_errors/_doc/1
 
 Expected response from Elasticsearch:
 
-You will get a 200-success HTTP response and will see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
+You will get a 200-success HTTP response and see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
 
 ![image](https://user-images.githubusercontent.com/60980933/125339166-487b0080-e30e-11eb-8c33-bfb8f0c3ad02.png)
 
-### Errors associated with sending search queries
+### Errors Associated with Sending Queries
 
-**Error 1: 400 Unknown Key**
-Suppose we added a new dataset. We want to retrieve all documents in our index and also see the total number of hits. 
+In parts [2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-) and [3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we added a dataset to an index we named news_headlines. 
 
-We send the following request:
+We sent various queries to retrieve documents that match the criteria. Let's go over common errors you may encounter while working with these queries. 
+
+**Error 1: 400 parsing_exception**
+
+In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned how to retrieve information about documents in our index.
+
+Syntax:
+```
+GET enter_name_of_the_index_here/_search
+```
+Example:
+```
+GET news_headlines/_search
+```
+Expected response from Elasticsearch:
+
+Elasticsearch will display the number of documents in our index and a sample of 10 search results by default.  
+
+![image](https://user-images.githubusercontent.com/60980933/105432767-8c216700-5c15-11eb-9ea2-ef74a3bc5f1b.png)
+
+To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default.  If you want the exact total number of hits, we use the track total hits parameter. 
+
+Let's say we sent the following request: 
 ```
 GET news_headlines/_search
 {
@@ -329,6 +351,11 @@ GET news_headlines/_search
 }
 ```
 
+Expected response from Elasticsearch:
+
+You will see that the total number of hits is now 200,853.
+
+![image](https://user-images.githubusercontent.com/60980933/105531896-3c8b7b80-5ca7-11eb-949d-4a65ef0b3be1.png)
 Expected response from Elasticsearch: 
 ![image](https://user-images.githubusercontent.com/60980933/123839774-c0870680-d8ca-11eb-9224-d9a939f902a8.png)
 
@@ -427,6 +454,103 @@ GET news_headlines/_search
 Expected response from Elasticsearch:
 ![image](https://user-images.githubusercontent.com/60980933/123855939-bc181900-d8dd-11eb-9aed-0cbe6d80ced5.png)
 Elasticsearch retrieves documents whose ranges fall in the range provided in the request. 
+
+**Error 400 unexpected character**
+Suppose you are searching for the search terms Michelle and Obama in multiple fields. So you use the multi_match query as whown below:
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "Michelle Obama",
+      "fields": [
+        "headline",
+        "short_description"
+        "authors"
+      ]
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124657891-4c1b0d00-de60-11eb-866a-67b296fb1e93.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "json_parsing_exception" and the reason(line 12) as "Unexpected character ...: was expecting comma to separate Array entries\n at ... line: 8...]" 
+
+This error is occuring because we are missing a comma in line 8. In the fields array, items must be separated by a comma. 
+
+Add the comma as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "Michelle Obama",
+      "fields": [
+        "headline",
+        "short_description",
+        "authors"
+      ]
+    }
+  }
+}
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/124658052-897f9a80-de60-11eb-9f4b-4b4c21f1ebb8.png)
+
+Elasticsearch returns hits that contain the term "Michelle" or Obama" in the fields headline, short_description, and authors. 
+
+**Error 400 json_parse_exception**
+Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+    }
+    "type": "phrase"
+  }
+}
+```
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
+
+This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
+
+If you move the type parameter up a line as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+      "type": "phrase"
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
+
+It returns 6 hits with the phrase party planning in either fields headline or short description. 
+
+
+### Errors associated with aggregations
 
 **Error 2: 400 error Aggregation definition for [x], expected a [y] **
 
@@ -536,104 +660,6 @@ Expected response from Elasticsearch:
 It pulls up one hit that contains all four search terms in the query. 
 
 minimum should match is included here. 
-### Errors associated with full text search
-
-**Error 400 unexpected character**
-Suppose you are searching for the search terms Michelle and Obama in multiple fields. So you use the multi_match query as whown below:
-
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "Michelle Obama",
-      "fields": [
-        "headline",
-        "short_description"
-        "authors"
-      ]
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124657891-4c1b0d00-de60-11eb-866a-67b296fb1e93.png)
-
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 11) as "json_parsing_exception" and the reason(line 12) as "Unexpected character ...: was expecting comma to separate Array entries\n at ... line: 8...]" 
-
-This error is occuring because we are missing a comma in line 8. In the fields array, items must be separated by a comma. 
-
-Add the comma as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "Michelle Obama",
-      "fields": [
-        "headline",
-        "short_description",
-        "authors"
-      ]
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124658052-897f9a80-de60-11eb-9f4b-4b4c21f1ebb8.png)
-
-Elasticsearch returns hits that contain the term "Michelle" or Obama" in the fields headline, short_description, and authors. 
-
-**Error 400 json_parse_exception**
-Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "party planning",
-      "fields": [
-        "headline",
-        "short_description"
-      ],
-    }
-    "type": "phrase"
-  }
-}
-```
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
-
-This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
-
-If you move the type parameter up a line as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "party planning",
-      "fields": [
-        "headline",
-        "short_description"
-      ],
-      "type": "phrase"
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
-
-It returns 6 hits with the phrase party planning in either fields headline or short description. 
-
-
-### Errors associated with aggregations
 
 **Error 400- illegal argument exception**
 ```
