@@ -84,7 +84,7 @@ Two possible explanations for this error are:
 1. The index common_errors truly does not exist or was deleted
 2. We do not have the correct index name
 
-**Cause of Error 1** 
+**The Cause of Error 1** 
 
 In our example, the cause of the error is quite clear! We have not created an index called common_errors and we were trying to retrieve a document from an index that does not exist. 
 
@@ -123,7 +123,7 @@ If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP m
 
 ![image](https://user-images.githubusercontent.com/60980933/125142331-b50abb00-e0d4-11eb-92fd-c05eface3fb7.png)
 
-**Cause of Error 2**  
+**The Cause of Error 2**  
 This error message suggests that we used the wrong HTTP verb to index this document. 
 
 You can use either PUT or POST HTTP verb to index a document. Each HTTP verb serves a different purpose and requires a different syntax. 
@@ -217,7 +217,8 @@ Elasticsearch returns a 409-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the reason(line 6) as "version conflict, document already exists (current version [1])." 
 
-**Cause of Error 3**
+**The Cause of Error 3**
+
 The indexing request includes the `_create` endpoint. The `_create` endpoint is specifically desgined to prevent the original document from being overwritten. Since we already have an existing document with an id of 1, Elasticsearch throws a 409-error and does not index this document. 
 
 Assign this document a non-existing id and Elasticsearch will carry out this request without a hitch! 
@@ -254,28 +255,29 @@ POST common_errors/_update/1
 {
   "doc": {
     "http_error": "405 Method Not Allowed"
-    "solution": "Look up the syntax of PUT and POST indexing request and use the correct syntax."
+    "solution": "Look up the syntax of PUT and POST indexing requests and use the correct syntax."
   }
 }
 ```
 
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/125336667-524f3480-e30b-11eb-9851-e708b3600b33.png)
+![image](https://user-images.githubusercontent.com/60980933/125338618-abb86300-e30d-11eb-9495-82b27037f03e.png)
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
+**The Cause of Error 4**
 If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
 In Elasticsearch, if you have multiple fields in an object("doc"), you must separate each field with a comma. The error message tells us that we need to add a comma at the end of line 4 in our request. 
 
-Once you add the comma and send the following request:
+Once you add the comma, send the following request:
 ```
 POST common_errors/_update/1
 {
   "doc": {
     "http_error": "405 Method Not Allowed",
-    "solution": "Look up the syntax of PUT and POST indexing request and use the correct syntax."
+    "solution": "Look up the syntax of PUT and POST indexing requests and use the correct syntax."
   }
 }
 ```
@@ -283,9 +285,10 @@ Expected response from Elasticsearch:
 
 You will see that document with an id of 1 has been successfully updated. 
 
-![image](https://user-images.githubusercontent.com/60980933/125336981-a9550980-e30b-11eb-88a9-ec7f81248fc1.png)
+![image](https://user-images.githubusercontent.com/60980933/125338938-08b41900-e30e-11eb-863d-3e28c460836c.png)
 
-If you send a GET request to retrieve document 1:
+Let's send a GET request to see the content of document 1:
+
 ```
 GET common_errors/_doc/1
 ```
@@ -294,7 +297,7 @@ Expected response from Elasticsearch:
 
 You will get a 200-success HTTP response and will see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
 
-![image](https://user-images.githubusercontent.com/60980933/125337109-d1dd0380-e30b-11eb-8bb4-71d8af9fb316.png)
+![image](https://user-images.githubusercontent.com/60980933/125339166-487b0080-e30e-11eb-8c33-bfb8f0c3ad02.png)
 
 ### Errors associated with sending search queries
 
