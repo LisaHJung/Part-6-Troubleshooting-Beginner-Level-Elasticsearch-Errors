@@ -234,7 +234,7 @@ Elasticsearch returns a 201-success response acknowledging that document with an
 
 ![image](https://user-images.githubusercontent.com/60980933/125318715-583b1a80-e2f7-11eb-9694-48a9b959f792.png)
 
-**Error 4: 400 x_content_parse_exception**
+**Error 4: 400 mapper_parsing_exception**
 
 Suppose you wanted to update document 1 by adding the fields http_error and solution as seen below:
 
@@ -254,20 +254,20 @@ POST common_errors/_update/1
 {
   "doc": {
     "http_error": "405 Method Not Allowed"
-    "solution": "Include doc_id at the end of the PUT request"
+    "solution": "Look up the syntax of PUT and POST indexing request and use the correct syntax."
   }
 }
 ```
 
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/123837576-40f83800-d8c8-11eb-884a-dff519a7190e.png)
+![image](https://user-images.githubusercontent.com/60980933/125336667-524f3480-e30b-11eb-9851-e708b3600b33.png)
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 12) as "...was expecting comma to separate Object entries\n at ... line: 4]." 
+If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
-In Elasticsearch, if you have multiple fields in an object, you must separate each field with a comma. It tells us that we need to add a comma at the end of line 4 in our request. 
+In Elasticsearch, if you have multiple fields in an object("doc"), you must separate each field with a comma. The error message tells us that we need to add a comma at the end of line 4 in our request. 
 
 Once you add the comma and send the following request:
 ```
@@ -275,14 +275,15 @@ POST common_errors/_update/1
 {
   "doc": {
     "http_error": "405 Method Not Allowed",
-    "solution": "Include doc id at the end of the PUT request"
+    "solution": "Look up the syntax of PUT and POST indexing request and use the correct syntax."
   }
 }
 ```
 Expected response from Elasticsearch:
 
 You will see that document with an id of 1 has been successfully updated. 
-![image](https://user-images.githubusercontent.com/60980933/123838019-bb28bc80-d8c8-11eb-95c2-a1bc2f1d490c.png)
+
+![image](https://user-images.githubusercontent.com/60980933/125336981-a9550980-e30b-11eb-88a9-ec7f81248fc1.png)
 
 If you send a GET request to retrieve document 1:
 ```
@@ -290,9 +291,10 @@ GET common_errors/_doc/1
 ```
 
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/123838222-ffb45800-d8c8-11eb-8edc-b4783a997ca0.png)
 
-You will see that the fields solution and http_error have been successfully added to document 1. 
+You will get a 200-success HTTP response and will see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
+
+![image](https://user-images.githubusercontent.com/60980933/125337109-d1dd0380-e30b-11eb-8bb4-71d8af9fb316.png)
 
 ### Errors associated with sending search queries
 
