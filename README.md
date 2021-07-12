@@ -320,11 +320,11 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch will display the number of documents in our index and a sample of 10 search results by default.  
+Elasticsearch will display the number of documents in our index(red box) and a sample of 10 search results(blue box) by default.  
 
-![image](https://user-images.githubusercontent.com/60980933/105432767-8c216700-5c15-11eb-9ea2-ef74a3bc5f1b.png)
+![image](https://user-images.githubusercontent.com/60980933/125364423-acfa8780-e32f-11eb-81e6-9ecd122f1f1a.png)
 
-To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default.  If you want the exact total number of hits, we use the track total hits parameter. 
+To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default(red box).  If you want the exact total number of hits, you can use the track total hits parameter. 
 
 Let's say we sent the following request: 
 ```
@@ -335,15 +335,17 @@ GET news_headlines/_search
 ```
 
 Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/123839178-10190280-d8ca-11eb-9667-69e6b5e1769e.png)
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was not written correctly.
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+![image](https://user-images.githubusercontent.com/60980933/125364982-b2a49d00-e330-11eb-8bc1-591c5cad501e.png)
 
-If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "Unknown key for a VALUE_BOOLEAN in [track total hits]." 
+If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "Unknown key for a VALUE_BOOLEAN in [track total hits]." 
 
-Elasticsearch throws an error because it does not recognize the key track total hits. While the correct terms for the key are all there, it does not include underscore between each term. Elasticsearch does not recognize space therefore it throws an error. 
+Whenever you are in doubt about error messages, [Elastic documentation](https://www.elastic.co/guide/index.html) is a great place to start. Let's go to the documentation and search for track total hits. 
 
-Add an underscore between each term as shown below and send the following request: 
+If you look at the documentation, you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores. therefore, while the correct terms are all there, Elasticsearch does not recognize this parameter and throws an error. 
+
+Let's add an underscore between each term as shown below and send the following request: 
 ```
 GET news_headlines/_search
 {
@@ -351,15 +353,11 @@ GET news_headlines/_search
 }
 ```
 
-Expected response from Elasticsearch:
-
-You will see that the total number of hits is now 200,853.
-
-![image](https://user-images.githubusercontent.com/60980933/105531896-3c8b7b80-5ca7-11eb-949d-4a65ef0b3be1.png)
 Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/123839774-c0870680-d8ca-11eb-9224-d9a939f902a8.png)
 
-Elasticsearch returns the total number of hits(line 12) and displays top 10 hits. 
+Elasticsearch returns 200-success response and shows the total number of hits as 200,853.
+
+![image](https://user-images.githubusercontent.com/60980933/125365254-29da3100-e331-11eb-8528-279110cd976c.png)
 
 **Error 1: 400 [X] query does not support multiple fields**
 
