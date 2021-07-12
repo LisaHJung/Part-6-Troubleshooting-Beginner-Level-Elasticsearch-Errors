@@ -189,11 +189,11 @@ Elasticsearch returns a 201-success HTTP response and autogenerates an id(line 4
 
 ![image](https://user-images.githubusercontent.com/60980933/125143039-94dbfb80-e0d6-11eb-88f3-11ac19d02b95.png)
 
-**Error 3: 409 Version Conflict**
+**Error 3: 409 version_conflict_engine_exception**
 
-When you index a document using an id that already exists, the existing document is overwritten by the new document. If you do not want a existing document to be overwritten, you can use the `_create` endpoint!
+When you index a document using an id of document that already exists, the existing document is overwritten by the new document. If you do not want a existing document to be overwritten, you can use the `_create` endpoint!
 
-Suppose we forgot that we indexed a document with an id of 1, and tried to index the following document using the `_create` endpoint and assign it an id of 1. 
+Suppose we forgot that we indexed a document with an id of 1. Then, we use the `_create` endpointto index the following document and assign it an id of 1. 
 
 Syntax:
 ```
@@ -211,24 +211,50 @@ PUT common_errors/_create/1
 ```
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/123820408-cde6c580-d8b7-11eb-9eaf-e5d44c3c0013.png)
+Elasticsearch returns a 409-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was incorrectly written. 
 
-Elasticsearch returns a 409-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+![image](https://user-images.githubusercontent.com/60980933/125318359-009caf00-e2f7-11eb-901d-e8867db668d9.png)
 
 If you look at the response, Elasticsearch lists the reason(line 6) as "version conflict, document already exists (current version [1])." 
 
-When you see this error after sending a request with a `_create` endpoint, it means that the document with an id of 1 already exist. As the _create endpint is specifically used to prevent the original document from being overwritten, Elasticsearch throws an error and does not index this document.  
+**Cause of Error 3**
+The indexing request includes the `_create` endpoint. The `_create` endpoint is specifically desgined to prevent the original document from being overwritten. Since we already have an existing document with an id of 1, Elasticsearch throws a 409-error and does not index this document. 
 
-**Error 4: 400 Failed to Parse**
-Suppose you wanted to update document 1 and add the fields http_error and solution as seen below. 
+Assign this document a non-existing id and Elasticsearch will carry out this request without a hitch! 
+```
+PUT common_errors/_create/2
+{
+  "source_of_error": "Using the _create endpoint to index a document with an existing id"
+}
+```
 
+Expected response from Elasticsearch:
+
+Elasticsearch returns a 201-success response acknowledging that document with an id of 2 has been created. 
+
+![image](https://user-images.githubusercontent.com/60980933/125318715-583b1a80-e2f7-11eb-9694-48a9b959f792.png)
+
+**Error 4: 400 x_content_parse_exception**
+
+Suppose you wanted to update document 1 by adding the fields http_error and solution as seen below:
+
+Syntax:
+```
+POST Name-of-the-Index/_update/id-of-the-document-you-want-to-update
+{
+  "doc": {
+    "field1": "value",
+    "field2": "value",
+  }
+} 
+```
 Request sent:
 ```
 POST common_errors/_update/1
 {
   "doc": {
     "http_error": "405 Method Not Allowed"
-    "solution": "Include doc_id a the end of the PUT request"
+    "solution": "Include doc_id at the end of the PUT request"
   }
 }
 ```
