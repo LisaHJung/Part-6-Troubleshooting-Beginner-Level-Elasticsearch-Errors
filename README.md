@@ -334,7 +334,8 @@ GET news_headlines/_search
 }
 ```
 
-Expected response from Elasticsearch: 
+Expected response from Elasticsearch:
+
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was not written correctly.
 
 ![image](https://user-images.githubusercontent.com/60980933/125364982-b2a49d00-e330-11eb-8bc1-591c5cad501e.png)
@@ -343,7 +344,7 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 Whenever you are in doubt about error messages, [Elastic documentation](https://www.elastic.co/guide/index.html) is a great place to start. Let's go to the documentation and search for track total hits. 
 
-If you look at the documentation, you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores. therefore, while the correct terms are all there, Elasticsearch does not recognize this parameter and throws an error. 
+If you look at the documentation on [track total hits parameter](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/search-your-data.html#track-total-hits), you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores.Therefore, while the correct terms are all there, Elasticsearch could not recognize this parameter and threw an error. 
 
 Let's add an underscore between each term as shown below and send the following request: 
 ```
@@ -359,7 +360,103 @@ Elasticsearch returns 200-success response and shows the total number of hits as
 
 ![image](https://user-images.githubusercontent.com/60980933/125365254-29da3100-e331-11eb-8528-279110cd976c.png)
 
-**Error 1: 400 [X] query does not support multiple fields**
+**Error 2: 400 parsing_exception**
+
+Suppose you want to use the range query to pull up newsheadlines published within a specific date range and have sent the following request:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "range": {
+      "date": 
+        "gte": "2015-06-20",
+        "lte": "2015-09-22"
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+![image](https://user-images.githubusercontent.com/60980933/125383609-e5f92300-e354-11eb-8fb4-55ac08e5ecf8.png)
+
+If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[range] query does not support [date]." 
+
+This error message sounds confusing as the range query should be able to retrieve documents that contain terms within a provided range. The date field should not have an effect on that. 
+
+Let's check the documentation on the [Range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
+
+The culprit is the range query syntax! 
+
+Our request is missing an extra curly braces to wrap the ranges like the request shown below. Let's send the following request and see what happens:
+
+```
+GET news_headlines/_search
+{
+  "query": {
+    "range": {
+      "date": {
+        "gte": "2015-06-20",
+        "lte": "2015-09-22"
+      }
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch:
+Elasticsearch returns a 200 response and retrieves documents whose d fall in the range provided in the request. 
+
+![image](https://user-images.githubusercontent.com/60980933/125383839-4a1be700-e355-11eb-9f54-27fce956f6a3.png)
+
+**Error 3: 400 json_parse_exception**
+Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+    }
+    "type": "phrase"
+  }
+}
+```
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
+
+This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
+
+If you move the type parameter up a line as shown below:
+```
+GET news_headlines/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "party planning",
+      "fields": [
+        "headline",
+        "short_description"
+      ],
+      "type": "phrase"
+    }
+  }
+}
+```
+
+Expected response from Elasticsearch: 
+![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
+
+It returns 6 hits with the phrase party planning in either fields headline or short description. 
+
+**Error 4: 400 [X] query does not support multiple fields**
 
 Suppose you want to use the match query to pull up all documents where the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12". 
 
@@ -406,151 +503,9 @@ Expected response from Elastcsearch:
 ![image](https://user-images.githubusercontent.com/60980933/124649175-61d70500-de55-11eb-85d3-050ef35f3819.png)
 Elasticsearch returns top 10 hits with documents whose the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12".
 
-**Error 2: 400 [X] query does not support [y]**
-
-Suppose you want to use the range query to pull up all documents where the date field contains a term between the two date ranges provided:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "range": {
-      "date": 
-        "gte": "2015-06-20",
-        "lte": "2015-09-22"
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/123853448-b4a34080-d8da-11eb-9f29-ad56a205342c.png)
-
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[range] query does not support [date]." 
-
-Let's check the documentation on the [Range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
-
-The culprit is the range query syntax! 
-
-Our request is missing an extra curly braces to wrap the ranges like the request shown below. Let's send the following request and see what happens:
-
-```
-GET news_headlines/_search
-{
-  "query": {
-    "range": {
-      "date": {
-        "gte": "2015-06-20",
-        "lte": "2015-09-22"
-      }
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/123855939-bc181900-d8dd-11eb-9aed-0cbe6d80ced5.png)
-Elasticsearch retrieves documents whose ranges fall in the range provided in the request. 
-
-**Error 400 unexpected character**
-Suppose you are searching for the search terms Michelle and Obama in multiple fields. So you use the multi_match query as whown below:
-
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "Michelle Obama",
-      "fields": [
-        "headline",
-        "short_description"
-        "authors"
-      ]
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124657891-4c1b0d00-de60-11eb-866a-67b296fb1e93.png)
-
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 11) as "json_parsing_exception" and the reason(line 12) as "Unexpected character ...: was expecting comma to separate Array entries\n at ... line: 8...]" 
-
-This error is occuring because we are missing a comma in line 8. In the fields array, items must be separated by a comma. 
-
-Add the comma as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "Michelle Obama",
-      "fields": [
-        "headline",
-        "short_description",
-        "authors"
-      ]
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124658052-897f9a80-de60-11eb-9f4b-4b4c21f1ebb8.png)
-
-Elasticsearch returns hits that contain the term "Michelle" or Obama" in the fields headline, short_description, and authors. 
-
-**Error 400 json_parse_exception**
-Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "party planning",
-      "fields": [
-        "headline",
-        "short_description"
-      ],
-    }
-    "type": "phrase"
-  }
-}
-```
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
-
-This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
-
-If you move the type parameter up a line as shown below:
-```
-GET news_headlines/_search
-{
-  "query": {
-    "multi_match": {
-      "query": "party planning",
-      "fields": [
-        "headline",
-        "short_description"
-      ],
-      "type": "phrase"
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
-
-It returns 6 hits with the phrase party planning in either fields headline or short description. 
-
-
 ### Errors associated with aggregations
 
-**Error 2: 400 error Aggregation definition for [x], expected a [y] **
+**Error 1: 400 error Aggregation definition for [x], expected a [y] **
 
 Suppose you want to send an aggregation request to get the summary of all categories that exist in our dataset. The size parameter allows you to specify how many hits should be returned in the response. Since you only want aggregations results, you add a size parameter and set it equal to 0 to avoid fetching the hits. 
 
