@@ -407,11 +407,13 @@ GET news_headlines/_search
 ```
 
 Expected response from Elasticsearch:
+
 Elasticsearch returns a 200 response and retrieves documents whose d fall in the range provided in the request. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125383839-4a1be700-e355-11eb-9f54-27fce956f6a3.png)
 
 **Error 3: 400 json_parse_exception**
+
 Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
 ```
 GET news_headlines/_search
@@ -428,13 +430,16 @@ GET news_headlines/_search
   }
 }
 ```
+Expected response from Elasticsearch:
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-If you look at the response, Elasticsearch lists the error type(line 11) as "json_parse_exception" and the reason(line 12) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
+![image](https://user-images.githubusercontent.com/60980933/125465154-dd336bf8-d2c5-4061-bd0f-e91bc27b088d.png)
+
+If you look at the response, Elasticsearch lists the error type(line 5) as "json_parse_exception" and the reason(line 6) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
 
 This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
 
-If you move the type parameter up a line as shown below:
+Move the type parameter up a line as shown below and send the request:
 ```
 GET news_headlines/_search
 {
@@ -452,14 +457,16 @@ GET news_headlines/_search
 ```
 
 Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/124660803-ed579280-de63-11eb-902c-103df14dca9f.png)
 
-It returns 6 hits with the phrase party planning in either fields headline or short description. 
+Elastcsearch returns a 200-success response and returns 6 hits with the phrase party planning in either fields headline or short description or both! 
 
-**Error 4: 400 [X] query does not support multiple fields**
+![image](https://user-images.githubusercontent.com/60980933/125466228-7125d157-04c9-4315-a242-096598a5e183.png)
 
-Suppose you want to use the match query to pull up all documents where the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12". 
+**Error 4: 400 parsing_exception**
 
+Let's say you want to ask a multi-faceted question that requires sending multiple queries in one request. You are most familiar with the match query so you write the following request to retrieve entertainment news headlines publisehd on "2018-04-12". 
+
+Request sent:
 ```
 GET news_headlines/_search
 {
@@ -472,11 +479,16 @@ GET news_headlines/_search
 }
 ```
 Expected response from Elasticsearch:
+
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[match] query doesn't support multiple fields, found [category] and [date]." 
+![image](https://user-images.githubusercontent.com/60980933/125475180-2f09f7e2-ab54-4a48-a0ac-622848035584.png)
 
-Elasticsearch throws an error because the match query does not support multiple fields. To search in multiple fields at the same time, you use the bool query. 
+If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[match] query doesn't support multiple fields, found [category] and [date]." 
+
+Elasticsearch throws an error because a match query can only query documents from one field. Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
+
+In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query: 
 
 ```
 GET news_headlines/_search
@@ -500,10 +512,12 @@ GET news_headlines/_search
 }
 ```
 Expected response from Elastcsearch:
-![image](https://user-images.githubusercontent.com/60980933/124649175-61d70500-de55-11eb-85d3-050ef35f3819.png)
-Elasticsearch returns top 10 hits with documents whose the category field contains the value called "Entertainment" and the date field contains the value "2018-04-12".
 
-### Errors associated with aggregations
+Elasticsearch returns a 200-sucess response and shows top 10 hits with documents whose category field contains the value called "Entertainment" and the date field contains the value "2018-04-12".
+
+![image](https://user-images.githubusercontent.com/60980933/125475511-cdb63c4b-8417-434f-9bb7-64361d5dc8ab.png)
+
+### Errors Associated with Aggregations
 
 **Error 1: 400 error Aggregation definition for [x], expected a [y] **
 
@@ -575,7 +589,7 @@ Expected response from Elasticsearch:
 
 You will see that top 10 hits have been omitted from the response and 15 top categories are returned.
 
-***Error 4*** 
+***Error 2*** 
 ```
 GET news_headlines/_search
 {
