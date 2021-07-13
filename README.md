@@ -503,9 +503,12 @@ minimum should match is included here.
 
 **Error 4: 400 parsing_exception**
 
-Let's say you want to ask a multi-faceted question that requires sending multiple queries in one request. You are most familiar with the match query so you write the following request to retrieve entertainment news headlines publisehd on "2018-04-12". 
+When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12". This question actually requires sending multiple queries in one request. 
 
-Request sent:
+One for retrieving all documents in the entertainment category. The other for retrieving documents that have been publisehd on "2018-04-12".
+
+Let's say you are most familiar with the match query so you write the following request to accomplish this task:
+
 ```
 GET news_headlines/_search
 {
@@ -525,9 +528,13 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[match] query doesn't support multiple fields, found [category] and [date]." 
 
-Elasticsearch throws an error because a match query can only query documents from one field. Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
+Elasticsearch throws an error because a match query can only query documents from one field. In our request, we tried to query multiple fields using one match query. 
 
-In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query. Since both queries must be true for the document to be considered as a hit, we use the must clause and include two match queries within it:
+Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
+
+In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query. 
+
+Since both queries must be true for the document to be considered as a hit, we use the must clause and include two match queries within it:
 ```
 GET news_headlines/_search
 {
@@ -551,15 +558,15 @@ GET news_headlines/_search
 ```
 Expected response from Elastcsearch:
 
-Elasticsearch returns a 200-sucess response and shows top 10 hits with documents whose category field contains the value called "Entertainment" and the date field contains the value "2018-04-12".
+Elasticsearch returns a 200-sucess response and shows top 10 hits with documents whose category field contains the value called "ENTERTAINMENT" and the date field contains the value "2018-04-12".
 
 ![image](https://user-images.githubusercontent.com/60980933/125475511-cdb63c4b-8417-434f-9bb7-64361d5dc8ab.png)
 
-### Errors Associated with Aggregations
+### Errors Associated with Aggregations and Mapping
 
 **Error 1: 400-error parsing_exception**
 
-Suppose you want to get the summary of all categories that exist in our dataset. Since this requires summarizing your data, you decide to send an aggregations request.
+Suppose you want to get the summary of all categories that exist in our dataset. Since this requires summarizing your data, you decide to send the following aggregations request:
 
 ```
 GET news_headlines/_search
@@ -574,11 +581,12 @@ GET news_headlines/_search
 }
 ```
 Expected response from Elasticsearch:
-By default, Elasticsearch returns both top 10 hits and aggregations results. Notice that Top 10 search hits take up lines 16-168. If you are only interested in aggreation results you can add a size parameter and set it equal to 0 to avoid fetching the hits.
+
+By default, Elasticsearch returns both top 10 hits and aggregations results. Notice that Top 10 search hits take up lines 16-168. Let's say you are only interested in aggreation results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits.
 
 ![image](https://user-images.githubusercontent.com/60980933/125504763-e19596a1-cbdd-4ab0-867b-8a4fb0220fdf.png)
 
-Let's say you sent the following request to accomplish this task:
+You send the following request to accomplish this task:
 ```
 GET news_headlines/_search
 {
@@ -597,7 +605,7 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-![image](https://user-images.githubusercontent.com/60980933/125486214-f176f1f5-867b-44cf-b5a0-30e34cc2a5b4.png)
+![image](https://user-images.githubusercontent.com/60980933/125509955-a2308af6-bf01-4cd5-b7e0-64f6327a0186.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "Aggregation definition for [size starts with a [VALUE_NUMBER], expected a [START_OBJECT]." 
 
@@ -610,6 +618,7 @@ This error is occuring because the size parameter was placed in a spot where Ela
 
 If you scroll down to the `Return only aggregation results` section in the documentation, you will see that the size parameter is placed in the outermost bracket as shown below. 
 
+Screenshot from the documentation:
 ![image](https://user-images.githubusercontent.com/60980933/125486926-b83f052c-6291-4412-983a-2b838d5a7aee.png)
 
 So let's place our size parameter in the outermost bracket and set it equal to 0 and send the request: 
@@ -631,15 +640,13 @@ Expected response from Elasticsearch:
 
 Elasticsearch does not retrieve the top 10 hits(line 16) and you can see the aggregations results, an array of categories, without having to scroll through the hits. 
 
-![image](https://user-images.githubusercontent.com/60980933/124628166-74454480-de3d-11eb-9a8d-adc9cf80673e.png)
+![image](https://user-images.githubusercontent.com/60980933/125510359-34d1024a-5ca3-4945-aae3-542c6c1f675d.png)
 
 **Other uses of the size parameter**
 
-The size parameter is not only used to omit top 10 search hits from the response. It is also used to specify the maximum number of hits to return.Depending on where the size parameter is placed, you can specify the maximum number of hits to return. 
+The size parameter is not only used to omit top 10 search hits from the response. Depending on where this parameter is place, you can specify the maximum number of results to return. 
 
 For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned to top 15. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. This will return top 15 categories that contains most number of documents. 
-
-Note that there are two size parameters placed in this request. One in the outermost part of the request set to 0 and the size parameter set to 15 within the terms aggregation. 
 
 ```
 GET news_headlines/_search
@@ -656,13 +663,21 @@ GET news_headlines/_search
 }
 ```
 
+Note that there are two size parameters placed in this request. One in the outermost part of the request set to 0 and the size parameter set to 15 within the terms aggregation. 
+
 Expected response from Elasticsearch:
 
 You will see that top 10 search hits have been omitted from the response and 15 categories with most number of documents are returned in the aggregations request.
 
-![image](https://user-images.githubusercontent.com/60980933/124629000-3b599f80-de3e-11eb-8886-0d4ef541f846.png)
+![image](https://user-images.githubusercontent.com/60980933/125512772-5c795218-af7d-484f-94f8-149b96e282d8.png)
 
-**Error 400- illegal argument exception**
+**Error 400- Field[x] of type[y] is not supported for z type of aggregation**
+
+```
+GET ecommerce_original_data/_search
+```
+![image](https://user-images.githubusercontent.com/60980933/125518031-d16061ff-a15f-4a36-8ad6-86c705ed8805.png)
+
 ```
 GET eo/_search
 {
@@ -681,21 +696,28 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
+![image](https://user-images.githubusercontent.com/60980933/125518829-1ba2cf30-368a-49dd-abfc-47c9e2521620.png)
+
 If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]"
 
-![image](https://user-images.githubusercontent.com/60980933/124955596-6544ca80-dfd4-11eb-8c8f-532f3ac2a09f.png)
+This error message is different from parsing exception. It says the field type keyword is not supported for date histogram aggregation, which suggests that this error may have something to do with the mapping. 
 
-It refers to the type of the field(mapping) so let's take a look at the mapping. 
+Let's check the mapping of the ecommerce_original_data index. 
+
 ```
-GET eo/_mapping
+GET ecommerce_original_data/_mapping
 ```
 
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124956943-c8832c80-dfd5-11eb-8958-be6d18705199.png)
 
-![image](https://user-images.githubusercontent.com/60980933/124955596-6544ca80-dfd4-11eb-8c8f-532f3ac2a09f.png)
+You will see that the ifled InvoiceDate is typed as keyword. 
+![image](https://user-images.githubusercontent.com/60980933/125519944-bc1ae5a0-72ad-43a1-9d0b-436c1d5b6504.png)
 
-This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. It must have type as date and the format of the date must be specified. 
+Let's check the documentation for [date histogram](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html) and scroll down to fixed interval. 
+
+This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped so that it specifies field type as date and the format of the date.
+
+This is why we created a new index with the desired mapping and reindexed the data from original index to final index which we named ecommerce_data. 
 
 Create a new index(ecommerce_data) with the following mapping.
 ```
@@ -736,7 +758,7 @@ PUT ecommerce_data
 POST _reindex
 {
   "source": {
-    "index": "eo"
+    "index": "ecommerce_original_data"
   },
   "dest": {
     "index": "ecommerce_data"
