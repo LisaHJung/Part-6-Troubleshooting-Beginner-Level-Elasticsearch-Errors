@@ -634,9 +634,10 @@ Elasticsearch does not retrieve the top 10 hits(line 16) and you can see the agg
 ![image](https://user-images.githubusercontent.com/60980933/124628166-74454480-de3d-11eb-9a8d-adc9cf80673e.png)
 
 **Other uses of the size parameter**
-The size parameter is not only used to return only aggreation results. Depending on where the size parameter is placed, you can specify the maximum number of hits to return. 
 
-For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned up to the top 15 with the most number of documents. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. 
+The size parameter is not only used to omit top 10 search hits from the response. It is also used to specify the maximum number of hits to return.Depending on where the size parameter is placed, you can specify the maximum number of hits to return. 
+
+For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned to top 15. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. This will return top 15 categories that contains most number of documents. 
 
 Note that there are two size parameters placed in this request. One in the outermost part of the request set to 0 and the size parameter set to 15 within the terms aggregation. 
 
@@ -657,11 +658,9 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-You will see that top 10 search hits have been omitted from the response and 15 top categories are returned in the aggregations request.
+You will see that top 10 search hits have been omitted from the response and 15 categories with most number of documents are returned in the aggregations request.
 
 ![image](https://user-images.githubusercontent.com/60980933/124629000-3b599f80-de3e-11eb-8886-0d4ef541f846.png)
-
-
 
 **Error 400- illegal argument exception**
 ```
