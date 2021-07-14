@@ -27,44 +27,53 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 Want to attend live workshops? Join the Elastic Americal Virtual Chapter to get the deets!
 
-## Follow the clues! 
+## Want To Troubleshoot Your Errors? Follow The Clues! 
 Whenever you perform an action with Elasticsearch and Kibana, Elasticsearch responds with an HTTP status and a response body. 
 
-![image](https://user-images.githubusercontent.com/60980933/123306018-fe0c1e00-d4dd-11eb-931d-6c8f7b90eb26.png)
+The request below asks Elasticsearch to index a document and assign it an id of 1. 
+
+![image](https://user-images.githubusercontent.com/60980933/125672998-51ecff9f-50cb-488a-ac02-374ed3a8eb6e.png)
 
 The HTTP status of 201-success indicates that the document has been successfully created. The response body indicates that document with an assigned id of 1 has been created in the beginners_crash_course index. 
 
-When the request fails, the HTTP status and response body provide valuable clues as to why the request failed so you can fix the error! 
+As we work with Elasticsearch, we will inevitably encounter error messages. When this happens, the HTTP status and the response body will provide valuable clues about why the request failed so we can fix the error! 
 
 ### Common Errors
+
+Here are some common errors that you may encounter as you work with Elasticsearch. 
+
 #### Unable to connect
 The cluster may be down or it may be a network issue. Check the network status and cluster health to identify the problem. 
 #### Connection unexpectedly closed
 The node may have died or it may be a network issue. Retry your request. 
 #### 5XX Error
-HTTP errors that start with 5 stems from internal server error in Elasticsearch. When you see this, take a look at the Elasticsearch log and identify the problem. 
+Errors with HTTP status starting with 5 stems from internal server error in Elasticsearch. When you see this, take a look at the Elasticsearch log and identify the problem. 
 #### 4XX Error
-HTTP errors that start with 4 stems from client errors. When you see this, correct the request before retrying. 
+Errors with HTTP status starting with 4 stems from client errors. When you see this, correct the request before retrying. 
 
-At beginner level, many error messages occur because of the way the request is written(4XX error). We will focus on 4XX errors during this workshop. 
+As beginners, we are still familiarizing ourselves with the rules and syntax required to communicate with Elasticsearch. Majority of the error messages we encouter are likely caused by the mistakes we make while writing our requests(4XX errors).   
 
-## Approach
-1. What number does the HTTP response start with(4XX? 5XX?)
+**To strengthen our grasp on requests we've learned throghout the series, we will only focus on 4XX errors during this workshop.** 
+
+## Thought Process For Troubleshooting Errors
+1. What number does the HTTP status start with(4XX? 5XX?)
 2. What does the response say?
+3. Look up documentation about the specific issue. If request was covered in Beginner's Crash Course, check the repos for correct syntax
+4. 
 
 ## Trip down memory lane
-Throughout the series, we have learned how to send requests that are related to following topics:
+Throughout the series, welearned how to send requests related to following topics:
 
 1. CRUD operations
 2. Queries
 3. Aggregations
 4. Mapping
 
-We will revisit each topic and go over common errors you may encounter as you explore these topics further. 
+We will revisit each topic and troubleshoot common errors you may encounter as you explore each topic. 
 
 ### Errors associated with CRUD operations
 
-**Error 1: 404 index_not_found_exception**
+**Error 1: 404 no such index[x]**
 
 In [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana), we learned how to perform CRUD operations. Let's say we sent the following request to retrieve a document with an id of 1 from the index `common_errors`.
 
@@ -74,21 +83,22 @@ GET common_errors/_doc/1
 ```
 
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/125141088-41b37a00-e0d1-11eb-957a-77bcea7207d7.png)
 
-Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
+
+![image](https://user-images.githubusercontent.com/60980933/125688779-16b15f58-3bab-4ef4-ab00-aaa8d9490603.png)
 
 When you look at the response body, Elasticsearch lists the reason(line 6) as "no such index [common_errors]." 
 
 Two possible explanations for this error are:
-1. The index common_errors truly does not exist or was deleted
+1. The index `common_errors` truly does not exist or was deleted
 2. We do not have the correct index name
 
-**The Cause of Error 1** 
+**Cause of Error 1** 
 
-In our example, the cause of the error is quite clear! We have not created an index called common_errors and we were trying to retrieve a document from an index that does not exist. 
+In our example, the cause of the error is quite clear! We have not created an index called `common_errors` and we were trying to retrieve a document from an index that does not exist. 
 
-Let's create an index called common_errors:
+Let's create an index called `common_errors`:
 
 Syntax:
 ```
@@ -100,13 +110,13 @@ PUT common_errors
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 200-success HTTP response acknowledging that the index common_errors has been successfully created. 
+Elasticsearch returns a 200-success HTTP status acknowledging that the index common_errors has been successfully created. 
 
-![image](https://user-images.githubusercontent.com/60980933/125141169-80e1cb00-e0d1-11eb-83e7-bdbf8f7244ea.png)
+![image](https://user-images.githubusercontent.com/60980933/125689096-3e42b998-1a52-4b76-b3ca-8ed438e0716a.png)
 
-**Error 2: 405 Method Not Allowed**
+**Error 2: 405 Incorrect HTTP method for uri, allowed: [x]**
 
-Now that we have created the index common_errors, let's index a document!
+Now that we have created the index `common_errors`, let's index a document!
 
 Suppose you have remembered that you could use the HTTP verb PUT to index a document and send the following request: 
 ```
@@ -117,18 +127,18 @@ PUT common_errors/_doc
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
 
 If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... allowed:[POST]." 
 
-![image](https://user-images.githubusercontent.com/60980933/125142331-b50abb00-e0d4-11eb-92fd-c05eface3fb7.png)
+![image](https://user-images.githubusercontent.com/60980933/125692329-b78088d4-70cd-43e4-80c5-faba2d9af05e.png)
 
-**The Cause of Error 2**  
+**Cause of Error 2**  
 This error message suggests that we used the wrong HTTP verb to index this document. 
 
 You can use either PUT or POST HTTP verb to index a document. Each HTTP verb serves a different purpose and requires a different syntax. 
 
-We learned about the difference between the two during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under index a document section.  
+We learned about the difference between the two verbs during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under `index a document` section.  
 
 **The HTTP verb PUT is used when you want to assign a specific id to your document** 
 
@@ -162,11 +172,11 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 201-success HTTP response acknowledging that document 1 has been successfully created. 
 
-![image](https://user-images.githubusercontent.com/60980933/125142771-c4d6cf00-e0d5-11eb-9634-b0cb19e5117f.png)
+![image](https://user-images.githubusercontent.com/60980933/125692563-c379ea40-b571-4cbd-a77d-ce18bcf1a306.png)
 
 **The HTTP verb POST is used when you want Elasticsearch to autogenerate an id for the document.** 
 
-If this is the option you wanted, then you could fix the error message by sending the following request.
+If this is the option you wanted, then you could fix the error message by replacing the verb PUT with POST and not including the document id after the document endpoint. 
 
 Syntax:
 ```
@@ -187,13 +197,13 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 201-success HTTP response and autogenerates an id(line 4) for the document that was indexed.
 
-![image](https://user-images.githubusercontent.com/60980933/125143039-94dbfb80-e0d6-11eb-88f3-11ac19d02b95.png)
+![image](https://user-images.githubusercontent.com/60980933/125692819-fd0e12d6-befc-40b3-8686-b4fe0c6c3bb5.png)
 
-**Error 3: 409 version_conflict_engine_exception**
+**Error 3: 409 version conflict document exists**
 
-When you index a document using an id of document that already exists, the existing document is overwritten by the new document. If you do not want a existing document to be overwritten, you can use the `_create` endpoint!
+In part 1, we learned that when you index a document using an id of document that already exists, the original document is overwritten by the new document. To prevent this from happening, we learned how to use the `_create` endpoint!
 
-Suppose we forgot that we indexed a document with an id of 1. Then, we use the `_create` endpointto index the following document and assign it an id of 1. 
+Suppose we forgot that we indexed a document with an id of 1. Then, we use the `_create` endpoint to index a new document and try to assign it an id of 1. 
 
 Syntax:
 ```
@@ -206,26 +216,26 @@ Example:
 ```
 PUT common_errors/_create/1
 {
-  "source_of_error": "Using the _create endpoint to index a document with an existing id"
+  "source_of_error": "Using the _create endpoint to index a new document with an id of an existing document"
 }
 ```
 Expected response from Elasticsearch:
 
 Elasticsearch returns a 409-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was incorrectly written. 
 
-![image](https://user-images.githubusercontent.com/60980933/125318359-009caf00-e2f7-11eb-901d-e8867db668d9.png)
+![image](https://user-images.githubusercontent.com/60980933/125697667-95fdbde1-6527-4076-bafb-66816ea6b494.png)
 
 If you look at the response, Elasticsearch lists the reason(line 6) as "version conflict, document already exists (current version [1])." 
 
-**The Cause of Error 3**
+**Cause of Error 3**
 
-The indexing request includes the `_create` endpoint. The `_create` endpoint is specifically desgined to prevent the original document from being overwritten. Since we already have an existing document with an id of 1, Elasticsearch throws a 409-error and does not index this document. 
+The indexing request includes the `_create` endpoint. The `_create` endpoint is specifically desgined to prevent a new document from being indexed with an id of an existing document. Since we already have an existing document with an id of 1, Elasticsearch throws a 409-error and does not index this document. 
 
 Assign this document a non-existing id and Elasticsearch will carry out this request without a hitch! 
 ```
 PUT common_errors/_create/2
 {
-  "source_of_error": "Using the _create endpoint to index a document with an existing id"
+  "source_of_error": "Using the _create endpoint to index a new document with an id of an existing document"
 }
 ```
 
@@ -233,7 +243,7 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 201-success response acknowledging that document with an id of 2 has been created. 
 
-![image](https://user-images.githubusercontent.com/60980933/125318715-583b1a80-e2f7-11eb-9694-48a9b959f792.png)
+![image](https://user-images.githubusercontent.com/60980933/125697823-23574d39-8d08-44a8-9c53-0582cfc56703.png)
 
 **Error 4: 400 mapper_parsing_exception**
 
