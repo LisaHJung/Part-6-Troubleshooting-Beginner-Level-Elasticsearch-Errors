@@ -792,7 +792,7 @@ Elasticsearch returns a 200-success response. It divides the dataset into 8 hour
 
 **Error 400 Found two aggregation type definitions in [x]: y and z**
 
-Combined aggregation:
+At times, you will ask questions that require 
 ```
 GET ecommerce_data/_search
 {
@@ -801,21 +801,18 @@ GET ecommerce_data/_search
     "transactions_per_day": {
       "date_histogram": {
         "field": "InvoiceDate",
-        "calendar_interval": "day",
-        "order": {
-          "daily_revenue": "desc"
+        "calendar_interval": "day"
+      },
+      "daily_revenue": {
+        "sum": {
+          "script": {
+            "source": "doc['UnitPrice'].value * doc['Quantity'].value"
+          }
         }
       },
-        "daily_revenue": {
-          "sum": {
-            "script": {
-              "source": "doc['UnitPrice'].value * doc['Quantity'].value"
-            }
-          }
-        },
-        "number_of_unique_customers_per_day": {
-          "cardinality": {
-            "field": "CustomerID"
+      "number_of_unique_customers_per_day": {
+        "cardinality": {
+          "field": "CustomerID"
         }
       }
     }
@@ -826,7 +823,7 @@ GET ecommerce_data/_search
 Expected response from Elasticsearch:
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-![image](https://user-images.githubusercontent.com/60980933/125544818-b8128c77-01c1-4660-b1c1-138ac1f488ec.png)
+![image](https://user-images.githubusercontent.com/60980933/125664685-d60b2c4c-6c2f-44d0-839f-020a53f39419.png)
 
 There are two things that are wrong with this aggregation.
 
@@ -867,5 +864,5 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 200-success message. It divides dataset into daily buckets and calculates number of unique customers per day as well as daily revenue for each bucket. 
 
-![image](https://user-images.githubusercontent.com/60980933/125545039-be1b5f3b-e0fc-4942-bcc5-657d501756c0.png)
+![image](https://user-images.githubusercontent.com/60980933/125665068-f3fabd9a-0b72-41cd-b8d5-3238e75a594d.png)
 
