@@ -671,7 +671,7 @@ You will see that top 10 search hits have been omitted from the response and 15 
 
 ![image](https://user-images.githubusercontent.com/60980933/125512772-5c795218-af7d-484f-94f8-149b96e282d8.png)
 
-**Error 400- Field[x] of type[y] is not supported for z type of aggregation**
+**Error 400- Field [x] of type [y] is not supported for z type of aggregation**
 
 ```
 GET ecommerce_original_data/_search
@@ -719,7 +719,10 @@ This error is occuring because the date histogram aggregation cannot be performe
 
 This is why we created a new index with the desired mapping and reindexed the data from original index to final index which we named ecommerce_data. 
 
-Create a new index(ecommerce_data) with the following mapping.
+*Side note* Error with meta
+![image](https://user-images.githubusercontent.com/60980933/125530700-1f83c5a9-125a-477f-bd5f-4988aa2398ae.png)
+
+Step 1: Create a new index(ecommerce_data) with the following mapping.
 ```
 PUT ecommerce_data
 {
@@ -754,6 +757,7 @@ PUT ecommerce_data
   }
 }
 ```
+Step 2: Reindex the data from original index(source) to the one you just created(destination).
 ```
 POST _reindex
 {
@@ -765,7 +769,7 @@ POST _reindex
   }
 }
 ```
-
+Step 3: Run aggregations using the new index ecommerce_data.
 ```
 GET ecommerce_data/_search
 {
@@ -780,112 +784,13 @@ GET ecommerce_data/_search
   }
 }
 ```
-**Errors 400 json_parse_exception**
-```
-GET ecommerce_data/_search
-{
-  "size": 0,
-  "aggs": {
-    "transactions_per_custom_price_ranges": {
-      "range": {
-        "field": "UnitPrice",
-        "ranges": 
-          {
-            "to": 50
-          },
-          {
-            "from": 50,
-            "to": 200
-          },
-          {
-            "from": 200
-          }
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/124959022-05502300-dfd8-11eb-96e9-210119cf2144.png)
-
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
-
-If you look at the response, Elasticsearch lists the error type(line 5) as "json_parse_exception" and the reason(line 5) as "Unexpected character... was expecting double-quote to start field name at ... line: 11, column: 12]"
-
-Hm... have no idea how to fix this. Go to the docs and search for range aggregation. 
-Ranges must be contained within square brackets. 
-```
-GET ecommerce_data/_search
-{
-  "size": 0,
-  "aggs": {
-    "transactions_per_custom_price_ranges": {
-      "range": {
-        "field": "UnitPrice",
-        "ranges": [
-          {
-            "to": 50
-          },
-          {
-            "from": 50,
-            "to": 200
-          },
-          {
-            "from": 200
-          }
-        ]
-      }
-    }
-  }
-}
-```
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124960941-1a2db600-dfda-11eb-954c-23db5ebcd41c.png)
 
-```
-GET ecommerce_data/_search
-{
-  "size": 0,
-  "aggs": {
-    "5_customers_with_lowest_number_of_transactions": {
-      "terms": {
-        "field": "CustomerID",
-        "size": 5,
-        "order": 
-          "_count": "asc"
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124961200-67aa2300-dfda-11eb-839f-488415572f03.png)
+Elasticsearch returns a 200-success response. It divides the dataset into 8 hour buckets and returns them in the response. 
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+![image](https://user-images.githubusercontent.com/60980933/125531405-875e198d-b229-441b-ae2e-d2428e6fbde1.png)
 
-If you look at the response, Elasticsearch lists the error type(line 5) as "x_content_parse_exception" and the reason(line 6) as "[9:11] [terms] order doesn't support values of type: VALUE_STRING"
-
-This error is occuring because you must put the curly brackets around order field. 
-```
-GET ecommerce_data/_search
-{
-  "size": 0,
-  "aggs": {
-    "5_customers_with_lowest_number_of_transactions": {
-      "terms": {
-        "field": "CustomerID",
-        "size": 5,
-        "order": {
-          "_count": "asc"
-        }
-      }
-    }
-  }
-}
-```
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124961559-dedfb700-dfda-11eb-86fe-53b0f8ba13ad.png)
-It returns top 5 customers with the lowest transactions. 
+**Error 400 Found two aggregation type definitions in [x]: y and z**
 
 Combined aggregation:
 ```
@@ -919,7 +824,11 @@ GET ecommerce_data/_search
 ```
 
 Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124964478-506d3480-dfde-11eb-85b2-d0a236bb0832.png)
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+![image](https://user-images.githubusercontent.com/60980933/125544818-b8128c77-01c1-4660-b1c1-138ac1f488ec.png)
+
+There are two things that are wrong with this aggregation.
 
 You can have multiple aggregations request within one aggregation. however, the type must be the same. Here you have a bucket aggreagation(date_historam) and metric aggregations(sum aggregation and cardinality aggregation) mixed in one aggregations request. 
 
@@ -955,39 +864,8 @@ GET ecommerce_data/_search
 }
 ```
 Expected response from Elasticsearch: 
-![image](https://user-images.githubusercontent.com/60980933/124964180-f10f2480-dfdd-11eb-8154-e2b8a418f047.png)
 
-### Errors associated with mapping
-### Errors associated with nodes and shards
+Elasticsearch returns a 200-success message. It divides dataset into daily buckets and calculates number of unique customers per day as well as daily revenue for each bucket. 
 
-**Cause: Not preceding name of the API with an underscore while calling it**
-
-Elasticsearch offers several APIs you can access to get detailed information about your cluster, nodes and etc. 
-
-In part 1: Intro to Elasticsearch and Kibana, we leared how to check for the health of the cluster by sending a request to the cluster API. 
-
-What users often forget is that Elasticsearch APIs begin with an underscore by convention. It is very easy to forget this and send a request like the following: 
-
-Bad example:
-```
-GET cluster/health
-```
-Expected response from Elasticsearch:
-
-Elasticsearch returns a 405-error HTTP response along with cause of the error in the response body.
-
-![image](https://user-images.githubusercontent.com/60980933/123321567-5d732980-d4f0-11eb-9e9e-80dc51082a0d.png)
-
-Pay attention to the HTTP error 405. It starts with a 4XX, meaning that there was a client error with the request sent. The message uri[cluster/health?pretty=true] indicates that there is a mistake in the request path. 
-
-Correct example:
-```
-GET _cluster/heatlh
-```
-Expected response from Elasticsearch:
-
-Elasticsearch will return a 200-success HTTP response and retrieve information about health of your cluster. 
-![image](https://user-images.githubusercontent.com/60980933/123323535-dbd0cb00-d4f2-11eb-9fd1-925cc011c633.png)
-
-
+![image](https://user-images.githubusercontent.com/60980933/125545039-be1b5f3b-e0fc-4942-bcc5-657d501756c0.png)
 
