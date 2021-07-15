@@ -670,15 +670,17 @@ You will see that top 10 search hits have been omitted from the response(as a re
 
 The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping workshops](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana). 
 
-During these workshops we have worked with ecommerce data. If part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch section` in Part 4.
+During these workshops we have worked with ecommerce data. If part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4.
 
-To set up data within Elasticsearch, we created a new index with a new mapping. Then, we had to reindex the data from the original index to the new index we just created. 
+To set up data within Elasticsearch, we created a new index with a new mapping(step 1). Then, we had to reindex the data from the original index to the new index we just created(step 2). 
 
 We never covered why we had to go through these steps. It was all because of the the error message we are about to see next!
 
-**Imagine that you had just added your dataset into ecommerce_original_data index. At this point, we have not created a new index with the customized mapping nor have reindexed original dataset into the new index.** 
+**From this point on, imagine that you had just added your dataset into ecommerce_original_data index.** 
 
-Before we get started, let's examine what our document looks like in the ecommerce dataset by sending the following request:
+**At this point, we have not created a new index with the customized mapping or have reindexed the original dataset into the new index.** 
+
+Before we get started, let's get an idea of what our document looks like by sending the following request:
 
 ```
 GET ecommerce_original_data/_search
@@ -690,9 +692,9 @@ Elasticsearch returns a 200-success status along with top 10 hits. Each document
 
 ![image](https://user-images.githubusercontent.com/60980933/125518031-d16061ff-a15f-4a36-8ad6-86c705ed8805.png)
 
-In part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the date_histogram aggregation. 
+In part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
 
-Suppose we wanted to group our data in to 8 hour buckets and send tne request below. 
+Suppose we wanted to group our data in to 8 hour buckets and we have sent the request below. 
 ```
 GET ecommerce_original_data/_search
 {
@@ -709,13 +711,13 @@ GET ecommerce_original_data/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125518829-1ba2cf30-368a-49dd-abfc-47c9e2521620.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]"
 
-This error is different from syntax error messages we have gone over thus far. The error says that the field type keyword is not supported for date histogram aggregation, which suggests that this error may have something to do with the mapping. 
+This error is different from syntax error messages we have gone over thus far. It says that the field type keyword is not supported for `date histogram aggregation`, which suggests that this error may have something to do with the mapping. 
 
 Let's check the mapping of the ecommerce_original_data index: 
 
@@ -733,7 +735,7 @@ You will see that the field InvoiceDate is typed as keyword.
 
 This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped so that it specifies field type as date and the format of the date.
 
-This is why we created a new index with the desired mapping and reindexed the data from original index to final index which we named ecommerce_data. 
+In part 4, this is why we created a new index with the desired mapping and reindexed the data from original index to ecommerce_data index. 
 
 **Step 1: Create a new index(ecommerce_data) with the following mapping.**
 ```
@@ -776,12 +778,14 @@ If you were following the steps from `Setting up data within Elasticsearch` sect
 
 ![image](https://user-images.githubusercontent.com/60980933/125847575-06ce48c0-43df-4cc0-8130-5af7b728b18c.png)
 
-This was due to a typo in the request where I forgot to include an underscore before meta in line 4. ![image](https://user-images.githubusercontent.com/60980933/125846926-ed755e5a-8c4e-418a-98c2-d533cae4c11a.png)
+This was due to a typo in the request where I forgot to include an underscore before meta in line 4. 
 ![image](https://user-images.githubusercontent.com/60980933/125846876-f1aa9a5d-0d24-457f-a763-412850ae5e5f.png)
 
-`_meta` field is a space used to include any notes that you want to include as a reference. It can be tips about common bug fixes or any info about your app that you want to include. The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field in the repo since this issue came to my attention.
+`_meta` field is a space used to include any notes that you want to include as a reference. It can be tips about common bug fixes or any info about your app that you want to include. 
 
-Sincere apologies to anybody who encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
+The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field in the repo since this issue came to my attention.
+
+Sincere apologies to anybody who has encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
 
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
@@ -818,7 +822,13 @@ Elasticsearch returns a 200-success response. It divides the dataset into 8 hour
 
 ### Error 11: 400 Found two aggregation type definitions in [x]: y and z
 
-At times, you will ask questions that require 
+One of the cool thing about Elasticsearch is that you can build any combination of aggregations to answer more complex questions. 
+
+For example, let's say we want to get the daily revenue AND the number of unique customers per day.
+
+This requires grouping data into daily buckets then calculating the daily revenue and the number of unique customers within each bucket. 
+
+Let's say we wrote this request to accomplish this task:
 ```
 GET ecommerce_data/_search
 {
@@ -853,9 +863,9 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 ### Cause of Error 11
 There are two things that are wrong with this aggregation.
+However, the type must be the same. Here you have a bucket aggregation(date_histogram) and metric aggregations(sum aggregation and cardinality aggregation) mixed in one aggregations request. 
 
-You can have multiple aggregations request within one aggregation. however, the type must be the same. Here you have a bucket aggreagation(date_historam) and metric aggregations(sum aggregation and cardinality aggregation) mixed in one aggregations request. 
-
+We need to ... :
 ```
 GET ecommerce_data/_search
 {
@@ -864,10 +874,7 @@ GET ecommerce_data/_search
     "transactions_per_day": {
       "date_histogram": {
         "field": "InvoiceDate",
-        "calendar_interval": "day",
-        "order": {
-          "daily_revenue": "desc"
-        }
+        "calendar_interval": "day"
       },
       "aggs": {
         "daily_revenue": {
