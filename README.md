@@ -245,7 +245,7 @@ Elasticsearch returns a 201-success response acknowledging that document with an
 
 ![image](https://user-images.githubusercontent.com/60980933/125697823-23574d39-8d08-44a8-9c53-0582cfc56703.png)
 
-**Error 4: 400 mapper_parsing_exception**
+**Error 4: 400 Unexpected Character: was expecting a comma to separate Object entries at [Source:...]**
 
 Suppose you wanted to update document 1 by adding the fields http_error and solution as seen below:
 
@@ -264,7 +264,7 @@ Request sent:
 POST common_errors/_update/1
 {
   "doc": {
-    "http_error": "405 Method Not Allowed"
+    "error": "405 Method Not Allowed"
     "solution": "Look up the syntax of PUT and POST indexing requests and use the correct syntax."
   }
 }
@@ -272,11 +272,11 @@ POST common_errors/_update/1
 
 Expected response from Elasticsearch:
 
-![image](https://user-images.githubusercontent.com/60980933/125338618-abb86300-e30d-11eb-9495-82b27037f03e.png)
-
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
 
-**The Cause of Error 4**
+![image](https://user-images.githubusercontent.com/60980933/125700599-a20b223d-59cb-4cc8-85f5-0c18947eb33b.png)
+
+**Cause of Error 4**
 
 If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
@@ -287,7 +287,7 @@ Once you add the comma, send the following request:
 POST common_errors/_update/1
 {
   "doc": {
-    "http_error": "405 Method Not Allowed",
+    "error": "405 Method Not Allowed",
     "solution": "Look up the syntax of PUT and POST indexing requests and use the correct syntax."
   }
 }
@@ -296,7 +296,7 @@ Expected response from Elasticsearch:
 
 You will see that document with an id of 1 has been successfully updated. 
 
-![image](https://user-images.githubusercontent.com/60980933/125338938-08b41900-e30e-11eb-863d-3e28c460836c.png)
+![image](https://user-images.githubusercontent.com/60980933/125700703-a85dd86f-2e87-4eee-a2c3-48d253d91cd0.png)
 
 Let's send a GET request to see the content of document 1:
 
@@ -306,17 +306,19 @@ GET common_errors/_doc/1
 
 Expected response from Elasticsearch:
 
-You will get a 200-success HTTP response and see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
+You will get a 200-success HTTP status and see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
 
-![image](https://user-images.githubusercontent.com/60980933/125339166-487b0080-e30e-11eb-8c33-bfb8f0c3ad02.png)
+![image](https://user-images.githubusercontent.com/60980933/125700802-0b7da623-8343-4f8b-a448-1837165c3e4a.png)
 
 ### Errors Associated with Sending Queries
 
-In parts [2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-) and [3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we added a dataset to an index we named news_headlines. 
+In parts [2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-) and [3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to send queries about news headlines in our index.
+
+As a prerequisite part of these workshops, we added a news headliens dataset to an index which we named news_headlines. 
 
 We sent various queries to retrieve documents that match the criteria. Let's go over common errors you may encounter while working with these queries. 
 
-**Error 1: 400 parsing_exception**
+**Error 5: 400 unknown key for a VALUE_x in [y].**
 
 In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned how to retrieve information about documents in our index.
 
@@ -330,11 +332,11 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch will display the number of documents in our index(red box) and a sample of 10 search results(blue box) by default.  
+Elasticsearch displays the number of documents in our index(red box) and a sample of 10 search results(blue box) by default.  
 
 ![image](https://user-images.githubusercontent.com/60980933/125364423-acfa8780-e32f-11eb-81e6-9ecd122f1f1a.png)
 
-To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default(red box).  If you want the exact total number of hits, you can use the track total hits parameter. 
+To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default(red box).  If you want the exact total number of hits, you can use the track_total_hits parameter. 
 
 Let's say we sent the following request: 
 ```
@@ -346,7 +348,7 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was not written correctly.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that the request was not written correctly.
 
 ![image](https://user-images.githubusercontent.com/60980933/125364982-b2a49d00-e330-11eb-8bc1-591c5cad501e.png)
 
@@ -354,9 +356,11 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 Whenever you are in doubt about error messages, [Elastic documentation](https://www.elastic.co/guide/index.html) is a great place to start. Let's go to the documentation and search for track total hits. 
 
-If you look at the documentation on [track total hits parameter](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/search-your-data.html#track-total-hits), you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores.Therefore, while the correct terms are all there, Elasticsearch could not recognize this parameter and threw an error. 
+If you look at the documentation on [track_total_hits parameter](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/search-your-data.html#track-total-hits), you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores. 
 
-Let's add an underscore between each term as shown below and send the following request: 
+Therefore, while the correct words are all there, Elasticsearch could not recognize this parameter and threw an error. 
+
+Let's add an underscore between each word as shown below and send the following request: 
 ```
 GET news_headlines/_search
 {
@@ -370,7 +374,7 @@ Elasticsearch returns 200-success response and shows the total number of hits as
 
 ![image](https://user-images.githubusercontent.com/60980933/125365254-29da3100-e331-11eb-8528-279110cd976c.png)
 
-**Error 2: 400 parsing_exception**
+**Error 6: 400 parsing_exception**
 
 Suppose you want to use the range query to pull up newsheadlines published within a specific date range and have sent the following request:
 ```
@@ -388,7 +392,7 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch: 
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125383609-e5f92300-e354-11eb-8fb4-55ac08e5ecf8.png)
 
@@ -396,7 +400,7 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 This error message sounds confusing as the range query should be able to retrieve documents that contain terms within a provided range. The date field should not have an effect on that. 
 
-Let's check the documentation on the [Range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
+Let's check the documentation on [range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
 
 The culprit is the range query syntax! 
 
@@ -418,13 +422,15 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 200 response and retrieves documents whose d fall in the range provided in the request. 
+Elasticsearch returns a 200-success status and retrieves documents whose date field value falls within the range provided in the request. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125383839-4a1be700-e355-11eb-9f54-27fce956f6a3.png)
 
-**Error 3: 400 json_parse_exception**
+**Error 7: 400 json_parse_exception**
 
-Suppose you wanted to search for the phrase party planning in multiple fields as shown below:
+In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
+
+Suppose you wanted to search for the phrase party planning in fields headline and short_description as shown below:
 ```
 GET news_headlines/_search
 {
@@ -441,15 +447,16 @@ GET news_headlines/_search
 }
 ```
 Expected response from Elasticsearch:
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125465154-dd336bf8-d2c5-4061-bd0f-e91bc27b088d.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "json_parse_exception" and the reason(line 6) as ""Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
 
-This error is occuring because the parameter type phrase should be included within the multi_match bracket.  
+This error is occuring because the parameter type phrase was placed outside of curly brackets that wrap up the multi_match query. 
 
-Move the type parameter up a line as shown below and send the request:
+Move the type parameter phrase up a line as shown below and send the request:
 ```
 GET news_headlines/_search
 {
@@ -468,54 +475,15 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch: 
 
-Elastcsearch returns a 200-success response and returns 6 hits with the phrase party planning in either fields headline or short description or both! 
+Elastcsearch returns a 200-success response and returns 6 hits with the phrase party planning in either field headline or short description or both! 
 
 ![image](https://user-images.githubusercontent.com/60980933/125466228-7125d157-04c9-4315-a242-096598a5e183.png)
 
-***Error 2*** 
-```
-GET news_headlines/_search
-{
-  "query": {
-    "match": {
-      "headline": "Khloe Kardashian Kendall Jenner",
-      "operator": "and"
-    }
-  }
-}
-```
+**Error 8: 400 parsing_exception**
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12". 
 
-If you look at the response, Elasticsearch lists the error type(line 11) as "parsing_exception" and the reason(line 12) as "[match] query doesn't support multiple fields, found [headline] and [operator]." 
-
-This error is occuring because the match query only supports one field. In order to get around this issue, add a query clause under the match cluase and include the operator as shown below. 
-
-```
-GET news_headlines/_search
-{
-  "query": {
-    "match": {
-      "headline": {
-        "query": "Khloe Kardashian Kendall Jenner",
-        "operator": "and"
-      }
-    }
-  }
-}
-```
-
-Expected response from Elasticsearch:
-![image](https://user-images.githubusercontent.com/60980933/124653511-9d280280-de5a-11eb-8856-1df03a832bac.png)
-It pulls up one hit that contains all four search terms in the query. 
-
-minimum should match is included here. 
-
-**Error 4: 400 parsing_exception**
-
-When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12". This question actually requires sending multiple queries in one request. 
-
-One for retrieving all documents in the entertainment category. The other for retrieving documents that have been publisehd on "2018-04-12".
+This question actually requires sending multiple queries in one request. One for retrieving all documents in the entertainment category. The other for retrieving documents that have been publisehd on "2018-04-12".
 
 Let's say you are most familiar with the match query so you write the following request to accomplish this task:
 
@@ -532,19 +500,26 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that something is not quite right with the request sent. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125475180-2f09f7e2-ab54-4a48-a0ac-622848035584.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[match] query doesn't support multiple fields, found [category] and [date]." 
 
-Elasticsearch throws an error because a match query can only query documents from one field. In our request, we tried to query multiple fields using one match query. 
-
 Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
+
+Elasticsearch throws an error because a match query can only query documents from one field. Our request tried to query multiple fields using only one match query. 
 
 In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query. 
 
-Since both queries must be true for the document to be considered as a hit, we use the must clause and include two match queries within it:
+With the bool query, you can combine multiple queries into one request and you can further specify boolean clauses to narrow down your search results. 
+
+This query offers four clauses that you can choose from. These are must, must_not, should, and filter. You can mix and match any of these clauses to get the relevant search results you want. 
+
+In our use case, we have two queries. One query that pulls up news headlines from the entertainment category. One query that pulls up news headlines written on 2018 of April 12th. 
+
+In order for us to get relevant search results, BOTH of these queries must be true. 
+So in this case we will use the must clause and include two match queries within it:
 ```
 GET news_headlines/_search
 {
@@ -568,7 +543,7 @@ GET news_headlines/_search
 ```
 Expected response from Elastcsearch:
 
-Elasticsearch returns a 200-sucess response and shows top 10 hits with documents whose category field contains the value called "ENTERTAINMENT" and the date field contains the value "2018-04-12".
+Elasticsearch returns a 200-sucess status and shows top 10 hits whose category field contains the value "ENTERTAINMENT" and the date field contains the value "2018-04-12".
 
 ![image](https://user-images.githubusercontent.com/60980933/125475511-cdb63c4b-8417-434f-9bb7-64361d5dc8ab.png)
 
