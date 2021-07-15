@@ -556,7 +556,7 @@ Elasticsearch returns a 200-sucess status and shows top 10 hits whose category f
 
 ## Errors Associated with Aggregations and Mapping
 
-### Error 9: 400-error Aggregation definition for [x], expected a [y].**
+### Error 9: 400-error Aggregation definition for [x], expected a [y].
 
 Suppose you want to get the summary of all categories that exist in our dataset. Since this requires summarizing your data, you decide to send the following aggregations request:
 
@@ -574,11 +574,11 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-By default, Elasticsearch returns both top 10 hits and aggregations results. Notice that Top 10 search hits take up lines 16-168. Let's say you are only interested in aggreation results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits.
+By default, Elasticsearch returns both top 10 search hits and aggregations results. Notice that the top 10 search hits take up lines 16-168. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125504763-e19596a1-cbdd-4ab0-867b-8a4fb0220fdf.png)
 
-You send the following request to accomplish this task:
+Let's say you are only interested in aggregations results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits. You send the following request to accomplish this task:
 ```
 GET news_headlines/_search
 {
@@ -595,7 +595,7 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch: 
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125509955-a2308af6-bf01-4cd5-b7e0-64f6327a0186.png)
 
@@ -603,19 +603,20 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 Something is off with our aggregations request syntax. Let's go to the Elastic documentation for [aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations.html) and see what we missed. 
 
-Screenshot from the documentation:
+**Screenshot from the documentation:**
 ![image](https://user-images.githubusercontent.com/60980933/125486600-ea21fb62-3b64-413f-9836-64b4bb4deff3.png)
 
 ### Cause of Error 9
 
 This error is occuring because the size parameter was placed in a spot where Elasticsearch is expecting the name of the aggregations. 
 
-If you scroll down to the `Return only aggregation results` section in the documentation, you will see that the size parameter is placed in the outermost bracket as shown below. 
+If you scroll down to the `Return only aggregation results` section in the documentation, you will see that the size parameter is placed in the outside of the aggregations request as shown below. 
 
 Screenshot from the documentation:
 ![image](https://user-images.githubusercontent.com/60980933/125486926-b83f052c-6291-4412-983a-2b838d5a7aee.png)
 
-So let's place our size parameter in the outermost bracket and set it equal to 0 and send the request: 
+So let's place our size parameter outside of the aggregations request and set it equal to 0.
+Send the following request: 
 ```
 GET news_headlines/_search
 {
@@ -632,13 +633,13 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch does not retrieve the top 10 hits(line 16) and you can see the aggregations results, an array of categories, without having to scroll through the hits. 
+Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can see the aggregations results, an array of categories, without having to scroll through the hits. 
 
-![image](https://user-images.githubusercontent.com/60980933/125510359-34d1024a-5ca3-4945-aae3-542c6c1f675d.png)
+![image](https://user-images.githubusercontent.com/60980933/125835366-af1dcf67-8892-4cfe-a182-1b50eb3850ce.png)
 
 **Other uses of the size parameter**
 
-The size parameter is not only used to omit top 10 search hits from the response. Depending on where this parameter is place, you can specify the maximum number of results to return. 
+The size parameter is not only used to omit top 10 search hits from the response. Depending on where the size  parameter is placed, you can specify the maximum number of results to return. 
 
 For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned to top 15. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. This will return top 15 categories that contains most number of documents. 
 
@@ -657,23 +658,43 @@ GET news_headlines/_search
 }
 ```
 
-Note that there are two size parameters placed in this request. One in the outermost part of the request set to 0 and the size parameter set to 15 within the terms aggregation. 
+Note that there are two size parameters placed in this request. The one outside of the aggregations request is set to 0 and the size parameter set to 15 within the terms aggregation. 
 
 Expected response from Elasticsearch:
 
-You will see that top 10 search hits have been omitted from the response and 15 categories with most number of documents are returned in the aggregations request.
+You will see that top 10 search hits have been omitted from the response(as a result of the first size parameter) and 15 categories with most number of documents are returned in the aggregations request(as a result of the second size parameter).
 
 ![image](https://user-images.githubusercontent.com/60980933/125512772-5c795218-af7d-484f-94f8-149b96e282d8.png)
 
 ### Error 10: 400- Field [x] of type [y] is not supported for z type of aggregation
 
+The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping workshops](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana). 
+
+During these workshops we have worked with ecommerce data. If part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch section` in Part 4.
+
+To set up data within Elasticsearch, we created a new index with a new mapping. Then, we had to reindex the data from the original index to the new index we just created. 
+
+We never covered why we had to go through these steps. It was all because of the the error message we are about to see next!
+
+**Imagine that you had just added your dataset into ecommerce_original_data index. At this point, we have not created a new index with the customized mapping nor have reindexed original dataset into the new index.** 
+
+Before we get started, let's examine what our document looks like in the ecommerce dataset by sending the following request:
+
 ```
 GET ecommerce_original_data/_search
 ```
+
+Expected response from Elasticsearch:
+
+Elasticsearch returns a 200-success status along with top 10 hits. Each document has fields called Description, Quantity, InvoiceNo, CustomerID, UnitPrice, Country, InvoiceDate, and StockCode. 
+
 ![image](https://user-images.githubusercontent.com/60980933/125518031-d16061ff-a15f-4a36-8ad6-86c705ed8805.png)
 
+In part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the date_histogram aggregation. 
+
+Suppose we wanted to group our data in to 8 hour buckets and send tne request below. 
 ```
-GET eo/_search
+GET ecommerce_original_data/_search
 {
   "size": 0,
   "aggs": {
@@ -688,15 +709,15 @@ GET eo/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125518829-1ba2cf30-368a-49dd-abfc-47c9e2521620.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]"
 
-This error message is different from parsing exception. It says the field type keyword is not supported for date histogram aggregation, which suggests that this error may have something to do with the mapping. 
+This error is different from syntax error messages we have gone over thus far. The error says that the field type keyword is not supported for date histogram aggregation, which suggests that this error may have something to do with the mapping. 
 
-Let's check the mapping of the ecommerce_original_data index. 
+Let's check the mapping of the ecommerce_original_data index: 
 
 ```
 GET ecommerce_original_data/_mapping
@@ -705,17 +726,14 @@ GET ecommerce_original_data/_mapping
 Expected response from Elasticsearch:
 
 You will see that the field InvoiceDate is typed as keyword. 
+
 ![image](https://user-images.githubusercontent.com/60980933/125519944-bc1ae5a0-72ad-43a1-9d0b-436c1d5b6504.png)
 
-Let's check the documentation for [date histogram](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html) and scroll down to fixed interval. 
-
 ### Cause of Error 10
+
 This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped so that it specifies field type as date and the format of the date.
 
 This is why we created a new index with the desired mapping and reindexed the data from original index to final index which we named ecommerce_data. 
-
-*Side note* Error with meta
-![image](https://user-images.githubusercontent.com/60980933/125530700-1f83c5a9-125a-477f-bd5f-4988aa2398ae.png)
 
 **Step 1: Create a new index(ecommerce_data) with the following mapping.**
 ```
@@ -752,6 +770,19 @@ PUT ecommerce_data
   }
 }
 ```
+**Side note Error with _meta**
+
+If you were following the steps from `Setting up data within Elasticsearch` section from Part 4: Aggregations, you probably have enountered this error. 
+
+![image](https://user-images.githubusercontent.com/60980933/125847575-06ce48c0-43df-4cc0-8130-5af7b728b18c.png)
+
+This was due to a typo in the request where I forgot to include an underscore before meta in line 4. ![image](https://user-images.githubusercontent.com/60980933/125846926-ed755e5a-8c4e-418a-98c2-d533cae4c11a.png)
+![image](https://user-images.githubusercontent.com/60980933/125846876-f1aa9a5d-0d24-457f-a763-412850ae5e5f.png)
+
+`_meta` field is a space used to include any notes that you want to include as a reference. It can be tips about common bug fixes or any info about your app that you want to include. The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field in the repo since this issue came to my attention.
+
+Sincere apologies to anybody who encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
+
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
 POST _reindex
@@ -764,7 +795,7 @@ POST _reindex
   }
 }
 ```
-**Step 3: Run aggregations using the new index ecommerce_data.**
+**Step 3: Send aggregations request to the new index ecommerce_data.**
 ```
 GET ecommerce_data/_search
 {
