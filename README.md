@@ -28,6 +28,7 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 Want to attend live workshops? Join the Elastic Americal Virtual Chapter to get the deets!
 
 ## Want To Troubleshoot Your Errors? Follow The Clues! 
+
 Whenever you perform an action with Elasticsearch and Kibana, Elasticsearch responds with an HTTP status and a response body. 
 
 The request below asks Elasticsearch to index a document and assign it an id of 1. 
@@ -57,12 +58,12 @@ As beginners, we are still familiarizing ourselves with the rules and syntax req
 
 ## Thought Process For Troubleshooting Errors
 1. What number does the HTTP status start with(4XX? 5XX?)
-2. What does the response say?
-3. Look up documentation about the specific issue. If request was covered in Beginner's Crash Course, check the repos for correct syntax
-4. 
+2. What does the response say? Always read the full message!
+3. Look up documentation about the specific issue. If request was covered in Beginner's Crash Course, check the repos for correct syntax. 
+4. If the HTTP status starts with a 4, compare the request you've written and the documentation. Identify what is different and make appropriate changes. 
 
 ## Trip down memory lane
-Throughout the series, welearned how to send requests related to following topics:
+Throughout the series, we learned how to send requests related to following topics:
 
 1. CRUD operations
 2. Queries
@@ -127,7 +128,7 @@ PUT common_errors/_doc
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... allowed:[POST]." 
 
@@ -444,25 +445,26 @@ GET news_headlines/_search
       "fields": [
         "headline",
         "short_description"
-      ],
-    }
+      ]
+    },
     "type": "phrase"
   }
 }
+
 ```
 Expected response from Elasticsearch:
 
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
-![image](https://user-images.githubusercontent.com/60980933/125465154-dd336bf8-d2c5-4061-bd0f-e91bc27b088d.png)
+![image](https://user-images.githubusercontent.com/60980933/126010686-324d860f-f532-4432-81f3-71894a19ee6c.png)
 
-If you look at the response, Elasticsearch lists the error type(line 5) as "json_parse_exception" and the reason(line 6) as "Unexpected character...: was expecting double-quote to start field name.. at line: 9]"
+If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[multi_match] malformed query, expected [END_OBJECT] but found [FIELD_NAME]"
 
-### Cause of Error 7
+### Cause of Error 
 
-This error is occuring because the parameter type phrase was placed outside of curly brackets that wrap up the multi_match query. 
+This error is occuring because the parameter type phrase was placed outside of the multi_match query. 
 
-Move the type parameter phrase up a line as shown below and send the request:
+Move the type parameter phrase up a line as shown below and move the comma from line 10 to line x and send the request:
 ```
 GET news_headlines/_search
 {
@@ -525,14 +527,14 @@ This query offers four clauses that you can choose from. These are must, must_no
 
 In our use case, we have two queries. One query that pulls up news headlines from the entertainment category. One query that pulls up news headlines written on 2018 of April 12th. 
 
-In order for us to get relevant search results, BOTH of these queries must be true. 
-So in this case we will use the must clause and include two match queries within it:
+Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - yes or no,  published on 2018-04-12? yes or no), we use the filter clause and include two match queries within it:
+
 ```
 GET news_headlines/_search
 {
   "query": {
     "bool": {
-      "must": [
+      "filter": [
         {
           "match": {
             "category": "ENTERTAINMENT"
@@ -547,16 +549,15 @@ GET news_headlines/_search
     }
   }
 }
+
 ```
 Expected response from Elastcsearch:
 
 Elasticsearch returns a 200-sucess status and shows top 10 hits whose category field contains the value "ENTERTAINMENT" and the date field contains the value "2018-04-12".
 
-![image](https://user-images.githubusercontent.com/60980933/125475511-cdb63c4b-8417-434f-9bb7-64361d5dc8ab.png)
+![image](https://user-images.githubusercontent.com/60980933/126013105-1ee3f92b-561b-49f5-a37e-0550b8515279.png)
 
 ## Errors Associated with Aggregations and Mapping
-
-### Error 9: 400-error Aggregation definition for [x], expected a [y].
 
 Suppose you want to get the summary of all categories that exist in our dataset. Since this requires summarizing your data, you decide to send the following aggregations request:
 
@@ -577,6 +578,8 @@ Expected response from Elasticsearch:
 By default, Elasticsearch returns both top 10 search hits and aggregations results. Notice that the top 10 search hits take up lines 16-168. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125504763-e19596a1-cbdd-4ab0-867b-8a4fb0220fdf.png)
+
+### Error 9: 400-error Aggregation definition for [x], expected a [y].
 
 Let's say you are only interested in aggregations results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits. You send the following request to accomplish this task:
 ```
@@ -639,7 +642,9 @@ Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can se
 
 **Other uses of the size parameter**
 
-The size parameter is not only used to omit top 10 search hits from the response. Depending on where the size  parameter is placed, you can specify the maximum number of results to return. 
+The size parameter is not only used to omit top 10 search hits from the response. 
+
+Depending on where the size  parameter is placed, the meaning of the request changes.The size parameter can be added at the beginning of a request to specify the number of search hits returned. The size parameter can be added within the aggregations type within the aggregations to specify the number of results(buckets) returned. 
 
 For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned to top 15. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. This will return top 15 categories that contains most number of documents. 
 
@@ -662,7 +667,7 @@ Note that there are two size parameters placed in this request. The one outside 
 
 Expected response from Elasticsearch:
 
-You will see that top 10 search hits have been omitted from the response(as a result of the first size parameter) and 15 categories with most number of documents are returned in the aggregations request(as a result of the second size parameter).
+You will see that search hits have been omitted from the response(as a result of the first size parameter) and 15 categories with most number of documents are returned in the aggregations request(as a result of the second size parameter).
 
 ![image](https://user-images.githubusercontent.com/60980933/125512772-5c795218-af7d-484f-94f8-149b96e282d8.png)
 
@@ -732,8 +737,15 @@ You will see that the field InvoiceDate is typed as keyword.
 ![image](https://user-images.githubusercontent.com/60980933/125519944-bc1ae5a0-72ad-43a1-9d0b-436c1d5b6504.png)
 
 ### Cause of Error 10
+Let's take a look at the documentation on [date histogram aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html).
 
-This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped so that it specifies field type as date and the format of the date.
+Screenshot from documentation:
+
+![image](https://user-images.githubusercontent.com/60980933/126014337-d596889c-e3c8-457d-8017-6364b372d836.png)
+
+This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped as a date field type. If the format of the date field does not adhere to iso8601 format (ex. 2021-07-16T17:12:56.123Z) Elasticsearch will also prompt you to specify the format of the date as well.
+
+The date format in our dataset does not adhere to the iso8601 format, therefore we had to specify what format our data was in so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html. 
 
 In part 4, this is why we created a new index with the desired mapping and reindexed the data from original index to ecommerce_data index. 
 
@@ -858,14 +870,14 @@ GET ecommerce_data/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4, meaning that there was a client error with the request sent.
 ![image](https://user-images.githubusercontent.com/60980933/125664685-d60b2c4c-6c2f-44d0-839f-020a53f39419.png)
 
 ### Cause of Error 11
-There are two things that are wrong with this aggregation.
-However, the type must be the same. Here you have a bucket aggregation(date_histogram) and metric aggregations(sum aggregation and cardinality aggregation) mixed in one aggregations request. 
 
-We need to ... :
+This error occurs because aggregations request was not written correctly. In order to calculate daily revenue and unique number of customers per day, the data must be grouped into daily buckets first. Only then, could these values be calculated within each bucket. 
+
+To specify that, you must create aggregations for transactions per day THEN create a subaggregation to denote that you want the following aggregations performed within each bucket. 
 ```
 GET ecommerce_data/_search
 {
