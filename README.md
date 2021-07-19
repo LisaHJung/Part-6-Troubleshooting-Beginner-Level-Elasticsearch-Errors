@@ -59,8 +59,9 @@ As beginners, we are still familiarizing ourselves with the rules and syntax req
 ## Thought Process For Troubleshooting Errors
 1. What number does the HTTP status start with(4XX? 5XX?)
 2. What does the response say? Always read the full message!
-3. Look up documentation about the specific issue. If request was covered in Beginner's Crash Course, check the repos for correct syntax. 
-4. If the HTTP status starts with a 4, compare the request you've written and the documentation. Identify what is different and make appropriate changes. 
+3. Look up the documentation about the specific issue. Compare your request and with the example from the documentation. Identify the mistake and make appropriate changes
+
+**At times, you will face error messages that are not very helpful. We will go over a couple of these and see how we can troubleshoot these types of errors**
 
 ## Trip down memory lane
 Throughout the series, we learned how to send requests related to following topics:
@@ -200,53 +201,7 @@ Elasticsearch returns a 201-success HTTP response and autogenerates an id(line 4
 
 ![image](https://user-images.githubusercontent.com/60980933/125692819-fd0e12d6-befc-40b3-8686-b4fe0c6c3bb5.png)
 
-### Error 3: 409 version conflict document exists
-
-In part 1, we learned that when you index a document using an id of document that already exists, the original document is overwritten by the new document. To prevent this from happening, we learned how to use the `_create` endpoint!
-
-Suppose we forgot that we indexed a document with an id of 1. Then, we use the `_create` endpoint to index a new document and try to assign it an id of 1. 
-
-Syntax:
-```
-PUT Name-of-the-Index/_create/id-you-want-to-assign-to-this-document
-{
-  "field_name": "value"
-}
-```
-Example: 
-```
-PUT common_errors/_create/1
-{
-  "source_of_error": "Using the _create endpoint to index a new document with an id of an existing document"
-}
-```
-Expected response from Elasticsearch:
-
-Elasticsearch returns a 409-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that the request was incorrectly written. 
-
-![image](https://user-images.githubusercontent.com/60980933/125697667-95fdbde1-6527-4076-bafb-66816ea6b494.png)
-
-If you look at the response, Elasticsearch lists the reason(line 6) as "version conflict, document already exists (current version [1])." 
-
-### Cause of Error 3
-
-The indexing request includes the `_create` endpoint. The `_create` endpoint is specifically desgined to prevent a new document from being indexed with an id of an existing document. Since we already have an existing document with an id of 1, Elasticsearch throws a 409-error and does not index this document. 
-
-Assign this document a non-existing id and Elasticsearch will carry out this request without a hitch! 
-```
-PUT common_errors/_create/2
-{
-  "source_of_error": "Using the _create endpoint to index a new document with an id of an existing document"
-}
-```
-
-Expected response from Elasticsearch:
-
-Elasticsearch returns a 201-success response acknowledging that document with an id of 2 has been created. 
-
-![image](https://user-images.githubusercontent.com/60980933/125697823-23574d39-8d08-44a8-9c53-0582cfc56703.png)
-
-### Error 4: 400 Unexpected Character: was expecting a comma to separate Object entries at [Source:...]
+### Error 3: 400 Unexpected Character: was expecting a comma to separate Object entries at [Source:...]
 
 Suppose you wanted to update document 1 by adding the fields http_error and solution as seen below:
 
@@ -277,7 +232,7 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 ![image](https://user-images.githubusercontent.com/60980933/125700599-a20b223d-59cb-4cc8-85f5-0c18947eb33b.png)
 
-### Cause of Error 4 
+### Cause of Error 3 
 
 If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
@@ -319,65 +274,7 @@ As a prerequisite part of these workshops, we added a news headliens dataset to 
 
 We sent various queries to retrieve documents that match the criteria. Let's go over common errors you may encounter while working with these queries. 
 
-### Error 5: 400 unknown key for a VALUE_x in [y].
-
-In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned how to retrieve information about documents in our index.
-
-Syntax:
-```
-GET enter_name_of_the_index_here/_search
-```
-Example:
-```
-GET news_headlines/_search
-```
-Expected response from Elasticsearch:
-
-Elasticsearch displays the number of documents in our index(red box) and a sample of 10 search results(blue box) by default.  
-
-![image](https://user-images.githubusercontent.com/60980933/125364423-acfa8780-e32f-11eb-81e6-9ecd122f1f1a.png)
-
-To improve the response speed on large datasets, Elasticsearch limits the total count to 10,000 by default(red box).  If you want the exact total number of hits, you can use the track_total_hits parameter. 
-
-Let's say we sent the following request: 
-```
-GET news_headlines/_search
-{
-  "track total hits": true
-}
-```
-
-Expected response from Elasticsearch:
-
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that the request was not written correctly.
-
-![image](https://user-images.githubusercontent.com/60980933/125364982-b2a49d00-e330-11eb-8bc1-591c5cad501e.png)
-
-If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "Unknown key for a VALUE_BOOLEAN in [track total hits]." 
-
-Whenever you are in doubt about error messages, [Elastic documentation](https://www.elastic.co/guide/index.html) is a great place to start. Let's go to the documentation and search for track total hits. 
-
-### Cause of Error 5
-
-If you look at the documentation on [track_total_hits parameter](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/search-your-data.html#track-total-hits), you will see that the parameter track_total_hits contains an underscore between each word. Our request includes space between the words instead of underscores. 
-
-Therefore, while the correct words are all there, Elasticsearch could not recognize this parameter and threw an error. 
-
-Let's add an underscore between each word as shown below and send the following request: 
-```
-GET news_headlines/_search
-{
-  "track_total_hits": true
-}
-```
-
-Expected response from Elasticsearch: 
-
-Elasticsearch returns 200-success response and shows the total number of hits as 200,853.
-
-![image](https://user-images.githubusercontent.com/60980933/125365254-29da3100-e331-11eb-8528-279110cd976c.png)
-
-### Error 6: 400 [x] query does not support [y]
+### Error 4: 400 [x] query does not support [y]
 
 Suppose you want to use the range query to pull up newsheadlines published within a specific date range and have sent the following request:
 ```
@@ -405,7 +302,7 @@ This error message sounds confusing as the range query should be able to retriev
 
 Let's check the documentation on [range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
 
-### Cause of Error 6
+### Cause of Error 4
 
 The culprit is the range query syntax! 
 
@@ -431,7 +328,7 @@ Elasticsearch returns a 200-success status and retrieves documents whose date fi
 
 ![image](https://user-images.githubusercontent.com/60980933/125383839-4a1be700-e355-11eb-9f54-27fce956f6a3.png)
 
-### Error 7: 400 Unexpected character...: was expecting double-quote to start field name.
+### Error 5: 400 Unexpected character...: was expecting double-quote to start field name.
 
 In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
 
@@ -460,7 +357,7 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[multi_match] malformed query, expected [END_OBJECT] but found [FIELD_NAME]"
 
-### Cause of Error 
+### Cause of Error 5
 
 This error is occuring because the parameter type phrase was placed outside of the multi_match query. 
 
@@ -487,11 +384,11 @@ Elastcsearch returns a 200-success response and returns 6 hits with the phrase p
 
 ![image](https://user-images.githubusercontent.com/60980933/125466228-7125d157-04c9-4315-a242-096598a5e183.png)
 
-### Error 8: 400 parsing_exception
+### Error 6: 400 parsing_exception
 
 When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12". 
 
-This question actually requires sending multiple queries in one request. One for retrieving all documents in the entertainment category. The other for retrieving documents that have been publisehd on "2018-04-12".
+This question actually requires sending multiple queries in one request. One for retrieving all documents from the entertainment category. The other for retrieving documents that were published on "2018-04-12".
 
 Let's say you are most familiar with the match query so you write the following request to accomplish this task:
 
@@ -514,7 +411,7 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[match] query doesn't support multiple fields, found [category] and [date]." 
 
-### Cause of Error 8
+### Cause of Error 6
 Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
 
 Elasticsearch throws an error because a match query can only query documents from one field. Our request tried to query multiple fields using only one match query. 
@@ -523,9 +420,13 @@ In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-co
 
 With the bool query, you can combine multiple queries into one request and you can further specify boolean clauses to narrow down your search results. 
 
-This query offers four clauses that you can choose from. These are must, must_not, should, and filter. You can mix and match any of these clauses to get the relevant search results you want. 
+This query offers four clauses that you can choose from. These are must, must_not, should, and filter. 
 
-In our use case, we have two queries. One query that pulls up news headlines from the entertainment category. One query that pulls up news headlines written on 2018 of April 12th. 
+You can mix and match any of these clauses to get the relevant search results you want. 
+
+In our use case, we have two queries:
+1. One query that pulls up news headlines from the entertainment category. 
+2. One query that pulls up news headlines written on April 12th, 2018. 
 
 Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - yes or no,  published on 2018-04-12? yes or no), we use the filter clause and include two match queries within it:
 
@@ -640,37 +541,6 @@ Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can se
 
 ![image](https://user-images.githubusercontent.com/60980933/125835366-af1dcf67-8892-4cfe-a182-1b50eb3850ce.png)
 
-**Other uses of the size parameter**
-
-The size parameter is not only used to omit top 10 search hits from the response. 
-
-Depending on where the size  parameter is placed, the meaning of the request changes.The size parameter can be added at the beginning of a request to specify the number of search hits returned. The size parameter can be added within the aggregations type within the aggregations to specify the number of results(buckets) returned. 
-
-For example, let's say you want to send the same aggregation request but you want to limit the number of categories returned to top 15. In that case, you would add a size parameter to the field terms and set it equal to 15 as shown below. This will return top 15 categories that contains most number of documents. 
-
-```
-GET news_headlines/_search
-{
-  "size": 0,
-  "aggs": {
-    "by_category": {
-      "terms": {
-        "size": 15,
-        "field": "category"
-      }
-    }
-  }
-}
-```
-
-Note that there are two size parameters placed in this request. The one outside of the aggregations request is set to 0 and the size parameter set to 15 within the terms aggregation. 
-
-Expected response from Elasticsearch:
-
-You will see that search hits have been omitted from the response(as a result of the first size parameter) and 15 categories with most number of documents are returned in the aggregations request(as a result of the second size parameter).
-
-![image](https://user-images.githubusercontent.com/60980933/125512772-5c795218-af7d-484f-94f8-149b96e282d8.png)
-
 ### Error 10: 400- Field [x] of type [y] is not supported for z type of aggregation
 
 The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping workshops](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana). 
@@ -684,18 +554,6 @@ We never covered why we had to go through these steps. It was all because of the
 **From this point on, imagine that you had just added your dataset into ecommerce_original_data index.** 
 
 **At this point, we have not created a new index with the customized mapping or have reindexed the original dataset into the new index.** 
-
-Before we get started, let's get an idea of what our document looks like by sending the following request:
-
-```
-GET ecommerce_original_data/_search
-```
-
-Expected response from Elasticsearch:
-
-Elasticsearch returns a 200-success status along with top 10 hits. Each document has fields called Description, Quantity, InvoiceNo, CustomerID, UnitPrice, Country, InvoiceDate, and StockCode. 
-
-![image](https://user-images.githubusercontent.com/60980933/125518031-d16061ff-a15f-4a36-8ad6-86c705ed8805.png)
 
 In part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
 
