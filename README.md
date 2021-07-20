@@ -27,6 +27,13 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 Want to watch all the workshops in the series? Subscribe to the Beginner's Crash Course to Elastic Stack YouTube Playlist! 
 
+[Season 2: Topics Survey](https://ela.st/beginners-season-2-topics)
+Starting with season 2, I will be creating short clips(10 min or less) to help you understand Elasticsearch and Kibana better. 
+
+This series is created for YOU! Please let me know what you would like to learn about in season 2 by submitting your preference in the survey. 
+
+I will create content on some of the most requested topics along with other helpful topics for beginners! 
+
 ## Want To Troubleshoot Your Errors? Follow The Clues! 
 
 Whenever you perform an action with Elasticsearch and Kibana, Elasticsearch responds with an HTTP status and a response body. 
@@ -327,9 +334,9 @@ Elasticsearch returns a 200-success status and retrieves news headlines that wer
 
 ### Error 5: 400 Unexpected character...: was expecting double-quote to start field name.
 
-In [Part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about the multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
+In [Part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about the `multi_match` query. This query allows you to search for the same search terms in multiple fields at one time. 
 
-Suppose you wanted to search for the phrase party planning in fields `headline` and `hort_description` as shown below:
+Suppose you wanted to search for the phrase party planning in fields `headline` and `short_description` as shown below:
 ```
 GET news_headlines/_search
 {
@@ -356,7 +363,7 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 ### Cause of Error 5
 
-This error is occuring because the parameter type:phrase was placed outside of the multi_match query. 
+This error is occuring because the parameter type:phrase was placed outside of the `multi_match` query. 
 
 Move the type parameter up a line and move the comma from line 10 to line 9 and send the request:
 ```
@@ -387,8 +394,8 @@ When we search for something, we often ask a multi-faceted question. For example
 
 This question actually requires sending multiple queries in one request:
 
-1. A query that retrieves all documents from the entertainment category. 
-2. A query that retrieves documents that were published on "2018-04-12".
+1. A query that retrieves documents from the entertainment category 
+2. A query that retrieves documents that were published on "2018-04-12"
 
 Let's say you are most familiar with the match query so you write the following request:
 
@@ -425,15 +432,16 @@ This query offers four clauses that you can choose from:
 1. must
 2. must_not
 3. should
-4. filter. 
+4. filter 
 
 You can mix and match any of these clauses to get the relevant search results you want. 
 
 In our use case, we have two queries:
-1. A query that retrieves all documents from the entertainment category. 
-2. A query that retrieves documents that were published on "2018-04-12".
 
-Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - **yes** or no,  published on 2018-04-12? **yes** or no), we use the filter clause and include two match queries within it:
+1. A query that retrieves documents from the entertainment category 
+2. A query that retrieves documents that were published on "2018-04-12"
+
+Since the news headlines could be filtered into yes or no category( from "ENTERTAINMENT" category? - **yes** or no,  published on 2018-04-12? **yes** or no), we use the filter clause and include two match queries within it:
 
 ```
 GET news_headlines/_search
@@ -556,20 +564,12 @@ During these workshops we have worked with ecommerce dataset.
 
 In Part 4, we’ve added the ecommerce dataset to Elasticsearch and named the index (I named mine `ecommerce_original_data`). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4 repo.
 
-Screenshot from Part 4 Repo:
-![image](https://user-images.githubusercontent.com/60980933/126237694-a2aed578-0f6d-419f-b4a2-5cc5a85f3605.png)
-
-**To set up data within Elasticsearch, we carried out the following steps:**
-
-Step 1: Create a new index(ecommerce_data) with a new mapping
-
-Step 2: Reindex the data from original index(source) to the one you just created(destination).
-
+**Screenshot from Part 4 Repo:**
+To set up data within Elasticsearch, we implemented the following steps:
+![image](https://user-images.githubusercontent.com/60980933/126377626-92ecc3c6-62c9-4bed-8424-61c2f0b12e45.png)
 We never covered why we had to go through these steps. It was all because of the the error message we are about to see next!
 
-**From this point on, imagine that you had just added your dataset into ecommerce_original_data index.** 
-
-**At this point, we have not created a new index with the customized mapping or have reindexed the original dataset into the new index.** 
+**From this point on, imagine that you had just added your dataset into ecommerce_original_data index. We haven't completed steps 1 and 2.** 
 
 In Part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
 
@@ -614,7 +614,7 @@ You will see that the field InvoiceDate is typed as keyword.
 
 Let's take a look at the [documentation on date_histogram aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html).
 
-Screenshot from documentation:
+**Screenshot from documentation:**
 
 ![image](https://user-images.githubusercontent.com/60980933/126014337-d596889c-e3c8-457d-8017-6364b372d836.png)
 
@@ -625,12 +625,14 @@ This error is occuring because the `date_histogram aggregation` cannot be perfor
 **The only way you can accomplish this is to:**
 
 Step 1: Create a new index with the desired mapping 
+
 Step 2: Reindex data from the original index to the new one
+
 Step 3: Send the` date_histogram aggregations` request to the new index
 
 In Part 4, this is why we created a new index with the desired mapping then reindexed the data from original index to ecommerce_data index!
 
-**Step 1: Create a new index(ecommerce_data) with the following mapping.**
+**Step 1: Create a new index(ecommerce_data) with the following mapping**
 ```
 PUT ecommerce_data
 {
@@ -681,21 +683,27 @@ The `_meta` field is completely optional. For our use case, it is not necessary 
 
 Sincere apologies to anybody who has encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
 
-**Side note about adding the format of the InvoiceDate field"**
+**Side note about adding the format of the InvoiceDate field**
 
-When it comes to fields typed as date, Elasticsearch only recognizes iso8601 date format(ex. 2021-07-16T17:12:56.123Z). 
+Let's look at the date format of the field InvoiceDate:
+```
+GET ecommerce_original_data/_search 
+```
+Expected response from Elasticsearch:
+![image](https://user-images.githubusercontent.com/60980933/126386813-f8ed5939-a93f-4883-8f11-15f649f70368.png)
 
-The date format of the field InvoiceDate(ex. "12/1/2010 8:26") is not of the iso8601 format(ex. 2021-07-16T17:12:56.123Z). 
+The format of the InvoiceDate is "M/d/yyyy H:m".
 
-Let's say you have only set the field type to date for the field InvoiceDate as shown below and have created a new index with this mapping.  
+By default, Elasticsearch is configured to recognize iso8601 date format(ex. 2021-07-16T17:12:56.123Z).
 
-![image](https://user-images.githubusercontent.com/60980933/126254890-4cce646d-df08-4ff7-9f5a-3070faf09e16.png)
+If the date format in your dataset differs from the iso8601 format, Elasticsearch will not recognize it and throw an error. 
 
-When you try to send the date_histogram aggregations request to the new index, Elasticsearch will return an empty array.
+In order to prevent this from happening, specify the date format of the InvoiceDate field("format": "M/d/yyyy H:m") within the mapping. The symbols used in date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). 
 
-![image](https://user-images.githubusercontent.com/60980933/126254210-7a203a99-e76a-4688-8235-5de9000e2fd6.png)
-
-In order to prevent this from happening, we needed to specify the date format of the InvoiceDate field("format": "M/d/yyyy H:m") within the mapping so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). 
+**RECAP**
+![image](https://user-images.githubusercontent.com/60980933/126386037-7bce3034-a9c9-4841-bf41-7cf67f259fcc.png)
+![image](https://user-images.githubusercontent.com/60980933/126386075-6a979c3a-4fad-459d-8d78-585369d34fd7.png)
+![image](https://user-images.githubusercontent.com/60980933/126386115-5d745d1e-4100-402c-9ec9-572031f41d3a.png)
 
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
