@@ -5,7 +5,7 @@ Welcome to the Beginner's Crash Course to Elastic Stack!
 
 This repo contains all resources shared during Part 6: Troubleshooting Beginner-Level Elasticsearch Errors!
 
-Throughout the series, we have learned about nodes and shards, fine tuning the relevance of your search, full text search, aggregation, and mapping. 
+Throughout the series, we have learned about CRUD operations, fine tuning the relevance of your search, full text search, aggregation, and mapping. 
 
 As you continue your journey with Elasticsearch, you will inevitably encounter some common errors associated with the topics we have covered in the series. 
 
@@ -23,9 +23,9 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 [Instructions](https://dev.to/elastic/downloading-elasticsearch-and-kibana-macos-linux-and-windows-1mmo) for downloading Elasticsearch and Kibana
 
-[Elastic America Virtual Chapter](https://community.elastic.co/amer-virtual/): 
+[YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
 
-Want to attend live workshops? Join the Elastic Americal Virtual Chapter to get the deets!
+Want to watch all the workshops in the series? Subscribe to the Beginner's Crash Course to Elastic Stack YouTube Playlist! 
 
 ## Want To Troubleshoot Your Errors? Follow The Clues! 
 
@@ -39,7 +39,7 @@ The HTTP status of 201-success indicates that the document has been successfully
 
 As we work with Elasticsearch, we will inevitably encounter error messages. 
 
-![image](https://user-images.githubusercontent.com/60980933/124959022-05502300-dfd8-11eb-96e9-210119cf2144.png)
+![image](https://user-images.githubusercontent.com/60980933/126246186-aabff03e-445b-4ff6-848b-5454085c02d3.png)
 
 When this happens, the HTTP status and the response body will provide valuable clues about why the request failed so we can fix the error! 
 
@@ -52,13 +52,13 @@ The cluster may be down or it may be a network issue. Check the network status a
 #### Connection unexpectedly closed
 The node may have died or it may be a network issue. Retry your request. 
 #### 5XX Errors
-Errors with HTTP status starting with 5 stems from internal server error in Elasticsearch. When you see this, take a look at the Elasticsearch log and identify the problem. 
+Errors with an HTTP status starting with 5 stems from internal server error in Elasticsearch. When you see this error, take a look at the Elasticsearch log and identify the problem. 
 #### 4XX Errors
-Errors with HTTP status starting with 4 stems from client errors. When you see this, correct the request before retrying. 
+Errors with an HTTP status starting with 4 stems from client errors. When you see this error, correct the request before retrying. 
 
 As beginners, we are still familiarizing ourselves with the rules and syntax required to communicate with Elasticsearch. Majority of the error messages we encouter are likely caused by the mistakes we make while writing our requests(4XX errors).   
 
-**To strengthen our grasp on requests we've learned throghout the series, we will only focus on 4XX errors during this workshop.** 
+**To strengthen our understanding of the requests we've learned throughout the series, we will only focus on 4XX errors during this workshop.** 
 
 ## Thought Process For Troubleshooting Errors
 1. What number does the HTTP status start with(4XX? 5XX?)
@@ -67,7 +67,7 @@ As beginners, we are still familiarizing ourselves with the rules and syntax req
 
 **At times, you will encounter error messages that are not very helpful. We will go over a couple of these and see how we can troubleshoot these types of errors.**
 
-## Trip down memory lane
+## Trip Down Memory Lane
 Throughout the series, we learned how to send requests related to following topics:
 
 1. CRUD operations
@@ -77,11 +77,11 @@ Throughout the series, we learned how to send requests related to following topi
 
 We will revisit each topic and troubleshoot common errors you may encounter as you explore each topic. 
 
-## Errors associated with CRUD operations
+## Errors Associated With CRUD Operations
 
 ### Error 1: 404 no such index[x]
 
-In [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana), we learned how to perform CRUD operations. Let's say we sent the following request to retrieve a document with an id of 1 from the index `common_errors`.
+In [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana), we learned how to perform CRUD operations. Let's say we've sent the following request to retrieve a document with an id of 1 from `common_errors` index.
 
 Request sent: 
 ```
@@ -90,7 +90,7 @@ GET common_errors/_doc/1
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP status starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 404-error along with cause of the error in the response body. The HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125688779-16b15f58-3bab-4ef4-ab00-aaa8d9490603.png)
 
@@ -116,7 +116,7 @@ PUT common_errors
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 200-success HTTP status acknowledging that the index common_errors has been successfully created. 
+Elasticsearch returns a 200-success HTTP status acknowledging that the index `common_errors` has been successfully created. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125689096-3e42b998-1a52-4b76-b3ca-8ed438e0716a.png)
 
@@ -146,7 +146,7 @@ You can use either PUT or POST HTTP verb to index a document. Each HTTP verb ser
 
 We learned about the difference between the two verbs during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under the `index a document` section.  
 
-**When indexing a document, HTTP verbs PUT or POST can be used** 
+**When indexing a document, HTTP verb PUT or POST can be used.** 
 
 **The HTTP verb PUT is used when you want to assign a specific id to your document** 
 
@@ -207,9 +207,9 @@ Elasticsearch returns a 201-success HTTP response and autogenerates an id(line 4
 
 ![image](https://user-images.githubusercontent.com/60980933/125692819-fd0e12d6-befc-40b3-8686-b4fe0c6c3bb5.png)
 
-### Error 3: 400 Unexpected Character: was expecting a comma to separate Object entries at [Source:...]
+### Error 3: 400 Unexpected Character: was expecting a comma to separate Object entries at [Source:...] line: x
 
-Suppose you wanted to update document 1 by adding the fields http_error and solution as seen below:
+Suppose you wanted to update document 1 by adding the fields `error` and `solution` as seen below:
 
 Syntax:
 ```
@@ -234,7 +234,7 @@ POST common_errors/_update/1
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4XX, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4, meaning that there was a client error with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/125700599-a20b223d-59cb-4cc8-85f5-0c18947eb33b.png)
 
@@ -242,7 +242,7 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 12) as "json_parse_exception" and the reason(line 13) as "...was expecting comma to separate Object entries at ... line: 4]." 
 
-In Elasticsearch, if you have multiple fields in an object("doc"), you must separate each field with a comma. The error message tells us that we need to add a comma at the end of line 4 in our request. 
+In Elasticsearch, if you have multiple fields("errors" and "solution") in an object("doc"), you must separate each field with a comma. The error message tells us that we need to add a comma at the end of line 4 in our request. 
 
 Once you add the comma, send the following request:
 ```
@@ -260,17 +260,17 @@ You will see that document with an id of 1 has been successfully updated.
 
 ![image](https://user-images.githubusercontent.com/60980933/125700703-a85dd86f-2e87-4eee-a2c3-48d253d91cd0.png)
 
-## Errors Associated with Sending Queries
+## Errors Associated With Sending Queries
 
 In parts [2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-) and [3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to send queries about news headlines in our index.
 
-As a prerequisite part of these workshops, we added a news headliens dataset to an index which we named news_headlines. 
+As a prerequisite part of these workshops, we added a news headlines dataset to an index which we named `news_headlines`. 
 
 We sent various queries to retrieve documents that match the criteria. Let's go over common errors you may encounter while working with these queries. 
 
 ### Error 4: 400 [x] query does not support [y]
 
-Suppose you want to use the range query to pull up newsheadlines published within a specific date range and have sent the following request:
+Suppose you want to use the range query to pull up news headlines published within a specific date range and have sent the following request:
 ```
 GET news_headlines/_search
 {
@@ -292,9 +292,9 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[range] query does not support [date]." 
 
-This error message sounds confusing as the range query should be able to retrieve documents that contain terms within a provided range. The date field should not have an effect on that. 
+This error message is misleading as the range query should be able to retrieve documents that contain terms within a provided range. It should be able to perform the range query in the date field. 
 
-Let's check the documentation on [range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
+Let's check the [documentation on the range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
 
 Screenshot from the documentation:
 ![image](https://user-images.githubusercontent.com/60980933/126231182-12f7e6d6-a29d-4076-8b12-4d8bb5f83b86.png)
@@ -303,7 +303,7 @@ Screenshot from the documentation:
 
 The culprit is the range query syntax! 
 
-Our request is missing an extra curly braces to wrap the ranges like the request shown below. Let's send the following request and see what happens:
+Our request is missing curly brackets around the bounds of the range query. Let's add the curly brackets and send the following request:
 
 ```
 GET news_headlines/_search
@@ -321,15 +321,15 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 200-success status and retrieves documents whose date field value falls within the range provided in the request. 
+Elasticsearch returns a 200-success status and retrieves news headlines that were published between the specified date range. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125383839-4a1be700-e355-11eb-9f54-27fce956f6a3.png)
 
 ### Error 5: 400 Unexpected character...: was expecting double-quote to start field name.
 
-In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we al learned about the multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
+In [Part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about the multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
 
-Suppose you wanted to search for the phrase party planning in fields headline and short_description as shown below:
+Suppose you wanted to search for the phrase party planning in fields `headline` and `hort_description` as shown below:
 ```
 GET news_headlines/_search
 {
@@ -348,17 +348,17 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
+Elasticsearch returns a 400-error along with the cause of the error in the response body. This HTTP status starts with a 4, meaning that something isn't quite right with the request sent.
 
 ![image](https://user-images.githubusercontent.com/60980933/126010686-324d860f-f532-4432-81f3-71894a19ee6c.png)
 
-If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[multi_match] malformed query, expected [END_OBJECT] but found [FIELD_NAME]"
+If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[multi_match] malformed query, expected [END_OBJECT] but found [FIELD_NAME]."
 
 ### Cause of Error 5
 
-This error is occuring because the parameter type phrase was placed outside of the multi_match query. 
+This error is occuring because the parameter type:phrase was placed outside of the multi_match query. 
 
-Move the type parameter phrase up a line as shown below and move the comma from line 10 to line x and send the request:
+Move the type parameter up a line and move the comma from line 10 to line 9 and send the request:
 ```
 GET news_headlines/_search
 {
@@ -377,17 +377,20 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch: 
 
-Elastcsearch returns a 200-success response and returns 6 hits with the phrase party planning in either field headline or short description or both! 
+Elastcsearch returns a 200-success response. All hits contains the phrase party planning in either field `headline` or `hort description` or both! 
 
 ![image](https://user-images.githubusercontent.com/60980933/125466228-7125d157-04c9-4315-a242-096598a5e183.png)
 
 ### Error 6: 400 parsing_exception
 
-When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12". 
+When we search for something, we often ask a multi-faceted question. For example, you may want to retrieve all entertainment news headlines published on "2018-04-12." 
 
-This question actually requires sending multiple queries in one request. One for retrieving all documents from the entertainment category. The other for retrieving documents that were published on "2018-04-12".
+This question actually requires sending multiple queries in one request:
 
-Let's say you are most familiar with the match query so you write the following request to accomplish this task:
+1. A query that retrieves all documents from the entertainment category. 
+2. A query that retrieves documents that were published on "2018-04-12".
+
+Let's say you are most familiar with the match query so you write the following request:
 
 ```
 GET news_headlines/_search
@@ -402,30 +405,35 @@ GET news_headlines/_search
 ```
 Expected response from Elasticsearch:
 
-Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that something is not quite right with the request sent. 
+Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that something is off with the query syntax.
 
 ![image](https://user-images.githubusercontent.com/60980933/125475180-2f09f7e2-ab54-4a48-a0ac-622848035584.png)
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "[match] query doesn't support multiple fields, found [category] and [date]." 
 
 ### Cause of Error 6
-Retrieving entertainment news headlines published on "2018-04-12" requires writing two queries. One that queries for the value "Entertainment" in the category field and the other that queries documents publisehd on"2018-04-12".  
 
-Elasticsearch throws an error because a match query can only query documents from one field. Our request tried to query multiple fields using only one match query. 
+Elasticsearch throws an error because a match query can  query documents from only one field. Our request tried to query multiple fields using only one match query. 
 
-In [part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query. 
+**Bool Query**
+
+In [Part 3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to combine multiple queries into one request by using the bool query. 
 
 With the bool query, you can combine multiple queries into one request and you can further specify boolean clauses to narrow down your search results. 
 
-This query offers four clauses that you can choose from. These are must, must_not, should, and filter. 
+This query offers four clauses that you can choose from:
+1. must
+2. must_not
+3. should
+4. filter. 
 
 You can mix and match any of these clauses to get the relevant search results you want. 
 
 In our use case, we have two queries:
-1. One query that pulls up news headlines from the entertainment category. 
-2. One query that pulls up news headlines published on April 12th, 2018. 
+1. A query that retrieves all documents from the entertainment category. 
+2. A query that retrieves documents that were published on "2018-04-12".
 
-Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - yes or no,  published on 2018-04-12? yes or no), we use the filter clause and include two match queries within it:
+Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - **yes** or no,  published on 2018-04-12? **yes** or no), we use the filter clause and include two match queries within it:
 
 ```
 GET news_headlines/_search
@@ -451,11 +459,11 @@ GET news_headlines/_search
 ```
 Expected response from Elastcsearch:
 
-Elasticsearch returns a 200-sucess status and shows top 10 hits whose category field contains the value "ENTERTAINMENT" and the date field contains the value "2018-04-12".
+Elasticsearch returns a 200-sucess status and shows top 10 hits whose category field contains the value "ENTERTAINMENT" and the date field contains the value of "2018-04-12".
 
 ![image](https://user-images.githubusercontent.com/60980933/126013105-1ee3f92b-561b-49f5-a37e-0550b8515279.png)
 
-## Errors Associated with Aggregations and Mapping
+## Errors Associated With Aggregations and Mapping
 
 Suppose you want to get the summary of all categories that exist in our dataset. Since this requires summarizing your data, you decide to send the following aggregations request:
 
@@ -479,7 +487,9 @@ By default, Elasticsearch returns both top 10 search hits and aggregations resul
 
 ### Error 7: 400-error Aggregation definition for [x], expected a [y].
 
-Let's say you are only interested in aggregations results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits. You send the following request to accomplish this task:
+Let's say you're only interested in aggregations results.
+
+You remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits. You send the following request to accomplish this task:
 ```
 GET news_headlines/_search
 {
@@ -502,7 +512,7 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "Aggregation definition for [size starts with a [VALUE_NUMBER], expected a [START_OBJECT]." 
 
-Something is off with our aggregations request syntax. Let's go to the Elastic documentation for [aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations.html) and see what we missed. 
+Something is off with our aggregations request syntax.  Let's go to the [Elastic documentation for aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations.html) and see what we missed. 
 
 **Screenshot from the documentation:**
 ![image](https://user-images.githubusercontent.com/60980933/125486600-ea21fb62-3b64-413f-9836-64b4bb4deff3.png)
@@ -534,24 +544,25 @@ GET news_headlines/_search
 
 Expected response from Elasticsearch:
 
-Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can see the aggregations results, an array of categories, without having to scroll through the hits. 
+Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can see the aggregations results(an array of categories) without having to scroll through the hits. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125835366-af1dcf67-8892-4cfe-a182-1b50eb3850ce.png)
 
 ### Error 8: 400- Field [x] of type [y] is not supported for z type of aggregation
 
-The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana) workshops. 
+The next two errors(error 10 & 11) are related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana) workshops. 
 
-During these workshops we have worked with ecommerce data. 
+During these workshops we have worked with ecommerce dataset. 
 
-In Part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4 repo.
+In Part 4, we’ve added the ecommerce dataset to Elasticsearch and named the index (I named mine `ecommerce_original_data`). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4 repo.
 
 Screenshot from Part 4 Repo:
 ![image](https://user-images.githubusercontent.com/60980933/126237694-a2aed578-0f6d-419f-b4a2-5cc5a85f3605.png)
 
-To set up data within Elasticsearch, we carried out the following steps:
+**To set up data within Elasticsearch, we carried out the following steps:**
 
-Step 1: Createa new index(ecommerce_data) with a new mapping
+Step 1: Create a new index(ecommerce_data) with a new mapping
+
 Step 2: Reindex the data from original index(source) to the one you just created(destination).
 
 We never covered why we had to go through these steps. It was all because of the the error message we are about to see next!
@@ -562,7 +573,7 @@ We never covered why we had to go through these steps. It was all because of the
 
 In Part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
 
-Suppose we wanted to group our data in to 8 hour buckets and we have sent the request below. 
+Suppose we wanted to group our data into 8 hour buckets and we have sent the request below. 
 ```
 GET ecommerce_original_data/_search
 {
@@ -583,11 +594,11 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 ![image](https://user-images.githubusercontent.com/60980933/125518829-1ba2cf30-368a-49dd-abfc-47c9e2521620.png)
 
-If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]"
+If you look at the response, Elasticsearch lists the error type(line 5) as "illegal_argument_exception" and the reason(line 6) as "Field [InvoiceDate] of type [keyword] is not supported for aggregation [date_histogram]."
 
 This error is different from syntax error messages we have gone over thus far. It says that the field type keyword is not supported for `date histogram aggregation`, which suggests that this error may have something to do with the mapping. 
 
-Let's check the mapping of the ecommerce_original_data index: 
+Let's check the mapping of the `ecommerce_original_data` index: 
 
 ```
 GET ecommerce_original_data/_mapping
@@ -601,21 +612,21 @@ You will see that the field InvoiceDate is typed as keyword.
 
 ### Cause of Error 8
 
-Let's take a look at the documentation on [date histogram aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html).
+Let's take a look at the [documentation on date_histogram aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html).
 
 Screenshot from documentation:
 
 ![image](https://user-images.githubusercontent.com/60980933/126014337-d596889c-e3c8-457d-8017-6364b372d836.png)
 
-This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped as a date field type. 
+This error is occuring because the `date_histogram aggregation` cannot be performed on a field typed as keyword. To perform a `date_histogram aggregation` on a field, the field must be mapped as field type date. 
 
-Remember, you cannot change the mapping of the existing field! 
+**Remember, you cannot change the mapping of the existing field!** 
 
-The only way you can accomplish this is to:
+**The only way you can accomplish this is to:**
 
 Step 1: Create a new index with the desired mapping 
 Step 2: Reindex data from the original index to the new one
-Step 3: Send the date histogram aggregations request to the new index
+Step 3: Send the` date_histogram aggregations` request to the new index
 
 In Part 4, this is why we created a new index with the desired mapping then reindexed the data from original index to ecommerce_data index!
 
@@ -657,28 +668,34 @@ PUT ecommerce_data
 
 **Side note about error associated with the `_meta` field**
 
-If you were following the steps from `Setting up data within Elasticsearch` section from Part 4: Aggregations, you probably have enountered this error. 
+If you were following the steps from `Setting up data within Elasticsearch` section from Part 4, you probably have enountered the following error: 
 
 ![image](https://user-images.githubusercontent.com/60980933/125847575-06ce48c0-43df-4cc0-8130-5af7b728b18c.png)
 
 This was due to a typo in the request where I forgot to include an underscore before meta in line 4. 
 ![image](https://user-images.githubusercontent.com/60980933/125846876-f1aa9a5d-0d24-457f-a763-412850ae5e5f.png)
 
-`_meta` field is a space used to include any notes that you want to include as a reference. It can be tips about common bug fixes or any info about your app that you want to include. 
+`_meta` field is a space used to include any notes that you want as a reference. It can be tips about common bug fixes or any info about your app that you want to include. 
 
-The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field in the repo since this issue came to my attention.
+The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field from Part 4 repo since this issue came to my attention.
 
 Sincere apologies to anybody who has encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
 
-**Side note about adding the format of the InvoiceDate field"
+**Side note about adding the format of the InvoiceDate field"**
 
 When it comes to fields typed as date, Elasticsearch only recognizes iso8601 date format(ex. 2021-07-16T17:12:56.123Z). 
 
-If the format of the date field does not follow this format, Elasticsearch will prompt you to specify the format of the date in the mapping as well.
+The date format of the field InvoiceDate(ex. "12/1/2010 8:26") is not of the iso8601 format(ex. 2021-07-16T17:12:56.123Z). 
 
-The date format in our dataset(ex. "12/1/2010 8:26") does not adhere to the iso8601 format(ex. 2021-07-16T17:12:56.123Z. 
+Let's say you have only set the field type to date for the field InvoiceDate as shown below and have created a new index with this mapping.  
 
-Therefore we had to specify the date format of the InvoiceDate field("format": "M/d/yyyy H:m") within the mapping so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). 
+![image](https://user-images.githubusercontent.com/60980933/126254890-4cce646d-df08-4ff7-9f5a-3070faf09e16.png)
+
+When you try to send the date_histogram aggregations request to the new index, Elasticsearch will return an empty array.
+
+![image](https://user-images.githubusercontent.com/60980933/126254210-7a203a99-e76a-4688-8235-5de9000e2fd6.png)
+
+In order to prevent this from happening, we needed to specify the date format of the InvoiceDate field("format": "M/d/yyyy H:m") within the mapping so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). 
 
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
@@ -715,9 +732,9 @@ Elasticsearch returns a 200-success response. It divides the dataset into 8 hour
 
 ### Error 9: 400 Found two aggregation type definitions in [x]: y and z
 
-One of the cool thing about Elasticsearch is that you can build any combination of aggregations to answer more complex questions. 
+One of the cool things about Elasticsearch is that you can build any combination of aggregations to answer more complex questions. 
 
-For example, let's say we want to get the daily revenue AND the number of unique customers per day.
+For example, let's say we want to get the daily revenue and the number of unique customers per day.
 
 This requires grouping data into daily buckets then calculating the daily revenue and the number of unique customers within each bucket. 
 
@@ -756,9 +773,9 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 
 ### Cause of Error 9
 
-This error occurs because aggregations request was not written correctly. In order to calculate daily revenue and unique number of customers per day, the data must be grouped into daily buckets first. Only then, could these values be calculated within each bucket. 
+This error occurs because aggregations request was not written correctly. In order to calculate the daily revenue and unique number of customers per day, the data must be grouped into daily buckets first. Only then, could these values be calculated within each bucket. 
 
-To specify that, you must create aggregations for transactions per day THEN create a subaggregation to denote that you want the following aggregations performed within each bucket. 
+To specify that, you must create aggregations for transactions per day. Then, create a subaggregation to denote that you want the following aggregations to be performed within each bucket. 
 ```
 GET ecommerce_data/_search
 {
@@ -789,7 +806,7 @@ GET ecommerce_data/_search
 ```
 Expected response from Elasticsearch: 
 
-Elasticsearch returns a 200-success message. It divides dataset into daily buckets and calculates number of unique customers per day as well as daily revenue for each bucket. 
+Elasticsearch returns a 200-success message. It divides the dataset into daily buckets and calculates number of unique customers per day as well as the daily revenue for each bucket. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125665068-f3fabd9a-0b72-41cd-b8d5-3238e75a594d.png)
 
