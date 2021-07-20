@@ -744,7 +744,8 @@ One of the cool things about Elasticsearch is that you can build any combination
 
 For example, let's say we want to get the daily revenue and the number of unique customers per day.
 
-This requires grouping data into daily buckets then calculating the daily revenue and the number of unique customers within each bucket. 
+![image](https://user-images.githubusercontent.com/60980933/126397086-b2910304-c065-4280-aa16-21ae566cbd7a.png)
+![image](https://user-images.githubusercontent.com/60980933/126397109-29416d46-c960-42f9-b6dd-c19f825c9b70.png)
 
 Let's say we wrote the following request to accomplish this task:
 ```
@@ -780,10 +781,15 @@ Elasticsearch returns a 400-error along with cause of the error in the response 
 ![image](https://user-images.githubusercontent.com/60980933/125664685-d60b2c4c-6c2f-44d0-839f-020a53f39419.png)
 
 ### Cause of Error 9
+This error is occurring because the structure of the aggregations request is wrong.
 
-This error occurs because aggregations request was not written correctly. In order to calculate the daily revenue and unique number of customers per day, the data must be grouped into daily buckets first. Only then, could these values be calculated within each bucket. 
+We are grouping data into daily buckets. Within each bucket we are calculating the daily revenue and unique nubmer of customers per day.
 
-To specify that, you must create aggregations for transactions per day. Then, create a subaggregation to denote that you want the following aggregations to be performed within each bucket. 
+So this is actually aggregations within aggregation. 
+![image](https://user-images.githubusercontent.com/60980933/126399284-d34b63cf-72bc-4309-a9d8-3d24efa90ab7.png)
+
+The following expresses the correct aggregations request structure:
+
 ```
 GET ecommerce_data/_search
 {
@@ -814,7 +820,7 @@ GET ecommerce_data/_search
 ```
 Expected response from Elasticsearch: 
 
-Elasticsearch returns a 200-success message. It divides the dataset into daily buckets and calculates number of unique customers per day as well as the daily revenue for each bucket. 
+Elasticsearch returns a 200-success message. It groups the dataset into daily buckets and calculates number of unique customers per day as well as the daily revenue for each bucket. 
 
 ![image](https://user-images.githubusercontent.com/60980933/125665068-f3fabd9a-0b72-41cd-b8d5-3238e75a594d.png)
 
