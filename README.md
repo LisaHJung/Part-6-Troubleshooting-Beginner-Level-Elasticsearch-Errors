@@ -37,7 +37,11 @@ The request below asks Elasticsearch to index a document and assign it an id of 
 
 The HTTP status of 201-success indicates that the document has been successfully created. The response body indicates that document with an assigned id of 1 has been created in the beginners_crash_course index. 
 
-As we work with Elasticsearch, we will inevitably encounter error messages. When this happens, the HTTP status and the response body will provide valuable clues about why the request failed so we can fix the error! 
+As we work with Elasticsearch, we will inevitably encounter error messages. 
+
+![image](https://user-images.githubusercontent.com/60980933/124959022-05502300-dfd8-11eb-96e9-210119cf2144.png)
+
+When this happens, the HTTP status and the response body will provide valuable clues about why the request failed so we can fix the error! 
 
 ### Common Errors
 
@@ -47,9 +51,9 @@ Here are some common errors that you may encounter as you work with Elasticsearc
 The cluster may be down or it may be a network issue. Check the network status and cluster health to identify the problem. 
 #### Connection unexpectedly closed
 The node may have died or it may be a network issue. Retry your request. 
-#### 5XX Error
+#### 5XX Errors
 Errors with HTTP status starting with 5 stems from internal server error in Elasticsearch. When you see this, take a look at the Elasticsearch log and identify the problem. 
-#### 4XX Error
+#### 4XX Errors
 Errors with HTTP status starting with 4 stems from client errors. When you see this, correct the request before retrying. 
 
 As beginners, we are still familiarizing ourselves with the rules and syntax required to communicate with Elasticsearch. Majority of the error messages we encouter are likely caused by the mistakes we make while writing our requests(4XX errors).   
@@ -59,9 +63,9 @@ As beginners, we are still familiarizing ourselves with the rules and syntax req
 ## Thought Process For Troubleshooting Errors
 1. What number does the HTTP status start with(4XX? 5XX?)
 2. What does the response say? Always read the full message!
-3. Look up the documentation about the specific issue. Compare your request and with the example from the documentation. Identify the mistake and make appropriate changes
+3. Use the [Elasticsearch documentation](https://www.elastic.co/guide/index.html) as your guide. Compare your request with the example from the documentation. Identify the mistake and make appropriate changes.
 
-**At times, you will face error messages that are not very helpful. We will go over a couple of these and see how we can troubleshoot these types of errors**
+**At times, you will encounter error messages that are not very helpful. We will go over a couple of these and see how we can troubleshoot these types of errors.**
 
 ## Trip down memory lane
 Throughout the series, we learned how to send requests related to following topics:
@@ -131,16 +135,18 @@ Expected response from Elasticsearch:
 
 Elasticsearch returns a 405-error along with cause of the error in the response body. This HTTP status starts with a 4, meaning that there was a client error with the request sent.
 
-If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... allowed:[POST]." 
+If you look at the response, Elasticsearch lists the reason as "Incorrect HTTP method for uri... and method: [PUT], allowed:[POST]." 
 
-![image](https://user-images.githubusercontent.com/60980933/125692329-b78088d4-70cd-43e4-80c5-faba2d9af05e.png)
+![image](https://user-images.githubusercontent.com/60980933/126228111-3f551439-1af7-49d8-a5c9-1f141afb4325.png)
 
 ### Cause of Error 2 
 This error message suggests that we used the wrong HTTP verb to index this document. 
 
 You can use either PUT or POST HTTP verb to index a document. Each HTTP verb serves a different purpose and requires a different syntax. 
 
-We learned about the difference between the two verbs during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under `index a document` section.  
+We learned about the difference between the two verbs during [Part 1: Intro to Elasticsearch and Kibana](https://github.com/LisaHJung/Part-1-Intro-to-Elasticsearch-and-Kibana) under the `index a document` section.  
+
+**When indexing a document, HTTP verbs PUT or POST can be used** 
 
 **The HTTP verb PUT is used when you want to assign a specific id to your document** 
 
@@ -254,18 +260,6 @@ You will see that document with an id of 1 has been successfully updated.
 
 ![image](https://user-images.githubusercontent.com/60980933/125700703-a85dd86f-2e87-4eee-a2c3-48d253d91cd0.png)
 
-Let's send a GET request to see the content of document 1:
-
-```
-GET common_errors/_doc/1
-```
-
-Expected response from Elasticsearch:
-
-You will get a 200-success HTTP status and see that the fields solution and http_error have been successfully added to document 1(lines 10-12). 
-
-![image](https://user-images.githubusercontent.com/60980933/125700802-0b7da623-8343-4f8b-a448-1837165c3e4a.png)
-
 ## Errors Associated with Sending Queries
 
 In parts [2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-) and [3](https://github.com/LisaHJung/Part-3-Running-full-text-queries-and-combined-queries-with-Elasticsearch-and-Kibana), we learned how to send queries about news headlines in our index.
@@ -302,6 +296,9 @@ This error message sounds confusing as the range query should be able to retriev
 
 Let's check the documentation on [range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
 
+Screenshot from the documentation:
+![image](https://user-images.githubusercontent.com/60980933/126231182-12f7e6d6-a29d-4076-8b12-4d8bb5f83b86.png)
+
 ### Cause of Error 4
 
 The culprit is the range query syntax! 
@@ -330,7 +327,7 @@ Elasticsearch returns a 200-success status and retrieves documents whose date fi
 
 ### Error 5: 400 Unexpected character...: was expecting double-quote to start field name.
 
-In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we learned about multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
+In [part 2](https://github.com/LisaHJung/Part-2-Understanding-the-relevance-of-your-search-with-Elasticsearch-and-Kibana-), we al learned about the multi_match query. This query allows you to search for the same search terms in multiple fields at one time. 
 
 Suppose you wanted to search for the phrase party planning in fields headline and short_description as shown below:
 ```
@@ -426,7 +423,7 @@ You can mix and match any of these clauses to get the relevant search results yo
 
 In our use case, we have two queries:
 1. One query that pulls up news headlines from the entertainment category. 
-2. One query that pulls up news headlines written on April 12th, 2018. 
+2. One query that pulls up news headlines published on April 12th, 2018. 
 
 Since articles could be filtered into yes or no category( from "ENTERTAINMENT" category? - yes or no,  published on 2018-04-12? yes or no), we use the filter clause and include two match queries within it:
 
@@ -480,7 +477,7 @@ By default, Elasticsearch returns both top 10 search hits and aggregations resul
 
 ![image](https://user-images.githubusercontent.com/60980933/125504763-e19596a1-cbdd-4ab0-867b-8a4fb0220fdf.png)
 
-### Error 9: 400-error Aggregation definition for [x], expected a [y].
+### Error 7: 400-error Aggregation definition for [x], expected a [y].
 
 Let's say you are only interested in aggregations results and you remember that you can add a size parameter and set it equal to 0 to avoid fetching the hits. You send the following request to accomplish this task:
 ```
@@ -510,7 +507,7 @@ Something is off with our aggregations request syntax. Let's go to the Elastic d
 **Screenshot from the documentation:**
 ![image](https://user-images.githubusercontent.com/60980933/125486600-ea21fb62-3b64-413f-9836-64b4bb4deff3.png)
 
-### Cause of Error 9
+### Cause of Error 7
 
 This error is occuring because the size parameter was placed in a spot where Elasticsearch is expecting the name of the aggregations. 
 
@@ -541,13 +538,21 @@ Elasticsearch does not retrieve the top 10 hits(line 16) as intended. You can se
 
 ![image](https://user-images.githubusercontent.com/60980933/125835366-af1dcf67-8892-4cfe-a182-1b50eb3850ce.png)
 
-### Error 10: 400- Field [x] of type [y] is not supported for z type of aggregation
+### Error 8: 400- Field [x] of type [y] is not supported for z type of aggregation
 
-The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping workshops](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana). 
+The next two errors(error 10 & 11) is related to the requests we have learned in [Part 4: Aggregations](https://github.com/LisaHJung/Part-4-Running-Aggregations-with-Elasticsearch-and-Kibana) and [Part 5: Mapping](https://github.com/LisaHJung/Part-5-Understanding-Mapping-with-Elasticsearch-and-Kibana) workshops. 
 
-During these workshops we have worked with ecommerce data. If part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4.
+During these workshops we have worked with ecommerce data. 
 
-To set up data within Elasticsearch, we created a new index with a new mapping(step 1). Then, we had to reindex the data from the original index to the new index we just created(step 2). 
+In Part 4, we’ve added the ecommerce data to Elasticsearch and named the index (I named mine ecommerce_original_data). Then, we had to follow additional steps in `Set up data within Elasticsearch` section in Part 4 repo.
+
+Screenshot from Part 4 Repo:
+![image](https://user-images.githubusercontent.com/60980933/126237694-a2aed578-0f6d-419f-b4a2-5cc5a85f3605.png)
+
+To set up data within Elasticsearch, we carried out the following steps:
+
+Step 1: Createa new index(ecommerce_data) with a new mapping
+Step 2: Reindex the data from original index(source) to the one you just created(destination).
 
 We never covered why we had to go through these steps. It was all because of the the error message we are about to see next!
 
@@ -555,7 +560,7 @@ We never covered why we had to go through these steps. It was all because of the
 
 **At this point, we have not created a new index with the customized mapping or have reindexed the original dataset into the new index.** 
 
-In part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
+In Part 4, we learned how to group data into buckets based on time interval. This type of aggregation request is called the `date_histogram aggregation`. 
 
 Suppose we wanted to group our data in to 8 hour buckets and we have sent the request below. 
 ```
@@ -594,18 +599,25 @@ You will see that the field InvoiceDate is typed as keyword.
 
 ![image](https://user-images.githubusercontent.com/60980933/125519944-bc1ae5a0-72ad-43a1-9d0b-436c1d5b6504.png)
 
-### Cause of Error 10
+### Cause of Error 8
+
 Let's take a look at the documentation on [date histogram aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations-bucket-datehistogram-aggregation.html).
 
 Screenshot from documentation:
 
 ![image](https://user-images.githubusercontent.com/60980933/126014337-d596889c-e3c8-457d-8017-6364b372d836.png)
 
-This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped as a date field type. If the format of the date field does not adhere to iso8601 format (ex. 2021-07-16T17:12:56.123Z) Elasticsearch will also prompt you to specify the format of the date as well.
+This error is occuring because the date histogram aggregation cannot be performed on a field typed as keyword. To perform a date histogram aggregation on a field, the field must be mapped as a date field type. 
 
-The date format in our dataset does not adhere to the iso8601 format, therefore we had to specify what format our data was in so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html. 
+Remember, you cannot change the mapping of the existing field! 
 
-In part 4, this is why we created a new index with the desired mapping and reindexed the data from original index to ecommerce_data index. 
+The only way you can accomplish this is to:
+
+Step 1: Create a new index with the desired mapping 
+Step 2: Reindex data from the original index to the new one
+Step 3: Send the date histogram aggregations request to the new index
+
+In Part 4, this is why we created a new index with the desired mapping then reindexed the data from original index to ecommerce_data index!
 
 **Step 1: Create a new index(ecommerce_data) with the following mapping.**
 ```
@@ -642,7 +654,8 @@ PUT ecommerce_data
   }
 }
 ```
-**Side note Error with _meta**
+
+**Side note about error associated with the `_meta` field**
 
 If you were following the steps from `Setting up data within Elasticsearch` section from Part 4: Aggregations, you probably have enountered this error. 
 
@@ -656,6 +669,16 @@ This was due to a typo in the request where I forgot to include an underscore be
 The `_meta` field is completely optional. For our use case, it is not necessary so I have removed the meta field in the repo since this issue came to my attention.
 
 Sincere apologies to anybody who has encountered that error while following along and thank you to @radhakrishnaakamat for catching the error!! 
+
+**Side note about adding the format of the InvoiceDate field"
+
+When it comes to fields typed as date, Elasticsearch only recognizes iso8601 date format(ex. 2021-07-16T17:12:56.123Z). 
+
+If the format of the date field does not follow this format, Elasticsearch will prompt you to specify the format of the date in the mapping as well.
+
+The date format in our dataset(ex. "12/1/2010 8:26") does not adhere to the iso8601 format(ex. 2021-07-16T17:12:56.123Z. 
+
+Therefore we had to specify the date format of the InvoiceDate field("format": "M/d/yyyy H:m") within the mapping so Elasticsearch could recognize it. The symbols used for date format was formed using this [documentation](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). 
 
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
@@ -690,7 +713,7 @@ Elasticsearch returns a 200-success response. It divides the dataset into 8 hour
 
 ![image](https://user-images.githubusercontent.com/60980933/125531405-875e198d-b229-441b-ae2e-d2428e6fbde1.png)
 
-### Error 11: 400 Found two aggregation type definitions in [x]: y and z
+### Error 9: 400 Found two aggregation type definitions in [x]: y and z
 
 One of the cool thing about Elasticsearch is that you can build any combination of aggregations to answer more complex questions. 
 
@@ -698,7 +721,7 @@ For example, let's say we want to get the daily revenue AND the number of unique
 
 This requires grouping data into daily buckets then calculating the daily revenue and the number of unique customers within each bucket. 
 
-Let's say we wrote this request to accomplish this task:
+Let's say we wrote the following request to accomplish this task:
 ```
 GET ecommerce_data/_search
 {
@@ -731,7 +754,7 @@ Expected response from Elasticsearch:
 Elasticsearch returns a 400-error along with cause of the error in the response body. This HTTP error starts with a 4, meaning that there was a client error with the request sent.
 ![image](https://user-images.githubusercontent.com/60980933/125664685-d60b2c4c-6c2f-44d0-839f-020a53f39419.png)
 
-### Cause of Error 11
+### Cause of Error 9
 
 This error occurs because aggregations request was not written correctly. In order to calculate daily revenue and unique number of customers per day, the data must be grouped into daily buckets first. Only then, could these values be calculated within each bucket. 
 
