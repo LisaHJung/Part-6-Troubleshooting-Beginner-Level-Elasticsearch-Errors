@@ -1,5 +1,5 @@
 # Beginner's Crash Course to Elastic Stack Series
-## Part-6-Troubleshooting-Beginner-Level-Elasticsearch-Errors
+## Part 6: Troubleshooting Beginner Level Elasticsearch Errors
 
 Welcome to the Beginner's Crash Course to Elastic Stack!
 
