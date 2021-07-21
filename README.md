@@ -713,7 +713,7 @@ In order to prevent this from happening, specify the date format of the InvoiceD
 
 ![image](https://user-images.githubusercontent.com/60980933/126386037-7bce3034-a9c9-4841-bf41-7cf67f259fcc.png)
 ![image](https://user-images.githubusercontent.com/60980933/126417282-73f5a571-701f-4881-a5c9-f7cb953ccd5e.png)
-![image](https://user-images.githubusercontent.com/60980933/126417313-1bba7dab-a82c-4c77-98af-27d688f02f0c.png)
+![image](https://user-images.githubusercontent.com/60980933/126423539-8da82a73-10bb-46cc-86d7-98ab31bea30b.png)
 
 **Step 2: Reindex the data from original index(source) to the one you just created(destination).**
 ```
