@@ -23,17 +23,21 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 [Instructions](https://dev.to/elastic/downloading-elasticsearch-and-kibana-macos-linux-and-windows-1mmo) for downloading Elasticsearch and Kibana
 
+[Presentation slides]()
+
 [YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
 
 Want to watch all the workshops in the series? Subscribe to the Beginner's Crash Course to Elastic Stack YouTube Playlist! 
 
 [Season 2: Topics Survey](https://ela.st/beginners-season-2-topics)
 
-Starting with season 2, I will discontinue holding live workshops and start uploading short clips(10 min or less) on YouTube to help you understand Elasticsearch and Kibana better. 
+I wanted to make the content more digestible for all of you! 
 
-This series is created for YOU! Please let me know what you would like to learn about in season 2 by submitting your preference in the survey. 
+Starting with season 2, I will discontinue holding live hour-long workshops and start uploading short clips(10 min or less) on [YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es)
 
-I will create content on some of the most requested topics along with other helpful topics for beginners! 
+This series is created for YOU! Please let me know what you would like to learn in season 2 by submitting your preference in the survey. 
+
+I will create content on most requested topics along with other helpful topics for beginners! 
 
 ## Want To Troubleshoot Your Errors? Follow The Clues! 
 
@@ -302,7 +306,7 @@ If you look at the response, Elasticsearch lists the error type(line 5) as "pars
 
 This error message is misleading as the range query should be able to retrieve documents that contain terms within a provided range. It should not matter that you have requestsed to run a range query against the date field. 
 
-Let's check the [documentation on the range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
+Let's check the [Elastic documentation on the range query](https://www.elastic.co/guide/en/elasticsearch/reference/7.9/query-dsl-range-query.html) to see what is going on. 
 
 **Screenshot from the documentation:**
 ![image](https://user-images.githubusercontent.com/60980933/126231182-12f7e6d6-a29d-4076-8b12-4d8bb5f83b86.png)
@@ -526,7 +530,7 @@ Elasticsearch returns a 400-error along with the cause of the error in the respo
 
 If you look at the response, Elasticsearch lists the error type(line 5) as "parsing_exception" and the reason(line 6) as "Aggregation definition for [size starts with a [VALUE_NUMBER], expected a [START_OBJECT]." 
 
-Something is off with our aggregations request syntax.  Let's go to the [Elastic documentation for aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations.html) and see what we missed. 
+Something is off with our aggregations request syntax.  Let's go to the [Elastic documentation on aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.13/search-aggregations.html) and see what we missed. 
 
 **Screenshot from the documentation:**
 ![image](https://user-images.githubusercontent.com/60980933/125486600-ea21fb62-3b64-413f-9836-64b4bb4deff3.png)
