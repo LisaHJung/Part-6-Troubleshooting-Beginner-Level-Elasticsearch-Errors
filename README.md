@@ -35,7 +35,7 @@ I want to make the content more digestible for all of you!
 
 Starting with season 2, I will discontinue holding live hour-long workshops and start uploading short clips(10 min or less) on [YouTube Playlist](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es) of Beginner's Crash Course to Elastic Stack.
 
-This series is created for YOU! Please let me know what you would like to learn in season 2 by submitting your preference in the survey. 
+This series is created for YOU! Please let me know what you would like to learn in season 2 by submitting your preference in the [survey](https://ela.st/beginners-season-2-topics). 
 
 I will create content on most requested topics along with other helpful topics for beginners! 
 
