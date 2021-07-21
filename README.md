@@ -27,13 +27,13 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 [YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
 
-Want to watch all the workshops in the series? Subscribe to the Beginner's Crash Course to Elastic Stack YouTube Playlist! 
+Want to watch all the workshops in the series? Check out the YouTube playlist of Beginner's Crash Course to Elastic Stack! 
 
 [Season 2: Topics Survey](https://ela.st/beginners-season-2-topics)
 
-I wanted to make the content more digestible for all of you! 
+I want to make the content more digestible for all of you! 
 
-Starting with season 2, I will discontinue holding live hour-long workshops and start uploading short clips(10 min or less) on [YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es)
+Starting with season 2, I will discontinue holding live hour-long workshops and start uploading short clips(10 min or less) on [YouTube Playlist](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es) of Beginner's Crash Course to Elastic Stack.
 
 This series is created for YOU! Please let me know what you would like to learn in season 2 by submitting your preference in the survey. 
 
