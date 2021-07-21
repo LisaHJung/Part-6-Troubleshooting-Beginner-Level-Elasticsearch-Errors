@@ -29,7 +29,7 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 Want to watch all the workshops in the series? Check out the YouTube playlist of Beginner's Crash Course to Elastic Stack! 
 
-[Season 2: Topics Survey](https://ela.st/beginners-season-2-topics)
+[Season 2 Topics Survey](https://ela.st/beginners-season-2-topics):
 
 I want to make the content more digestible for all of you! 
 
