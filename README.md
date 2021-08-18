@@ -5,7 +5,7 @@ Welcome to the Beginner's Crash Course to Elastic Stack!
 
 This repo contains all resources shared during Part 6: Troubleshooting Beginner-Level Elasticsearch Errors!
 
-Throughout the series, we have learned about CRUD operations, fine tuning the relevance of your search, full text search, aggregation, and mapping. 
+Throughout the series, we have learned about CRUD operations, fine tuning the relevance of your search, full text search, aggregations, and mapping. 
 
 As you continue your journey with Elasticsearch, you will inevitably encounter some common errors associated with the topics we have covered in the series. 
 
@@ -15,7 +15,7 @@ Learn how to troubleshoot these pesky errors so you can get unstuck!
 
 [Table of Contents: Beginner's Crash Course to Elastic Stack](https://github.com/LisaHJung/Beginners-Crash-Course-to-the-Elastic-Stack-Series): 
 
-This workshop is a part of the Beginner's Crash Course to Elastic Stack series. Check out this table contents to access all the workshops in the series thus far. This table will continue to get updated as more workshops in the series are released! 
+This workshop is a part of the Beginner's Crash Course to Elastic Stack series. Check out this table contents to access all the workshops in the series. 
 
 [Free Elastic Cloud Trial](https://ela.st/elastic-beginners)
 
@@ -27,7 +27,7 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 [Workshop recording](https://www.youtube.com/watch?v=jzBoSHcmTN0)
 
-[YouTube Playlist of Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
+[YouTube Playlist of the Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
 
 Want to watch all the workshops in the series? Check out the YouTube playlist of Beginner's Crash Course to Elastic Stack! 
 
