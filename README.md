@@ -24,7 +24,11 @@ This workshop is a part of the Beginner's Crash Course to Elastic Stack series. 
 
 [Presentation slides](https://github.com/LisaHJung/Part-6-Troubleshooting-beginner-level-Elasticsearch-Errors/blob/main/Part%206_%20Troubleshooting%20Beginner%20Level%20Errors.pdf)
 
-[Workshop recording](https://www.youtube.com/watch?v=jzBoSHcmTN0)
+[Video recording](https://www.youtube.com/watch?v=jzBoSHcmTN0) of the workshop
+
+[Mini Beginner's Crash Course to Elasticsearch & Kibana playlist](https://ela.st/mini-beginners-crash-course)
+
+Do you prefer learning by watching shorter videos? Check out this playlist to watch short clips of beginner's crash course full length workshops. Season 2 clips will be uploaded here in the future!
 
 [YouTube Playlist of the Beginner's Crash Course to Elastic Stack](https://www.youtube.com/watch?v=gS_nHTWZEJ8&list=PL_mJOmq4zsHZYAyK606y7wjQtC0aoE6Es): 
 Want to watch all the workshops in the series? Check out the YouTube playlist of the Beginner's Crash Course to Elastic Stack! 
